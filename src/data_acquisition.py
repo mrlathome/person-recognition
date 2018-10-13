@@ -1,9 +1,7 @@
 """
 Acquires data from multiple sources
 """
-
-import numpy as np
-
+from matplotlib import image
 
 def load_img(file):
     """
@@ -12,5 +10,7 @@ def load_img(file):
     :return: RGB image as numpy array
     """
     # Creating an empty array only to see the test fail
-    image = np.array([])
-    return image
+    # img = np.array([])
+    # Load image file from disk
+    img = image.imread(file)
+    return img
