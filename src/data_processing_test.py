@@ -13,7 +13,7 @@ class DataPreprocessingTestCase(unittest.TestCase):
     def test_encode(self):
         preprocessed_data = cv2.imread('images/andrew.jpg')
         encoded_image = encode(preprocessed_data)
-        self.assertEqual(len(encoded_image) == 1, True)
+        self.assertEqual(len(encoded_image) == 128, True)
 
     def test_preprocess(self):
         data = cv2.imread('images/andrew.jpg')
