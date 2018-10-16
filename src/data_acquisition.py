@@ -3,6 +3,7 @@ Acquires data from multiple sources
 """
 from matplotlib import image
 
+
 def load_img(file):
     """
     Reads image from disk
