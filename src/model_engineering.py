@@ -17,6 +17,16 @@ class ModelEngineering:
         self.graph = self.load_graph()
         self.session = tf.Session(graph=self.graph)
 
+    def encode(self, image):
+        """
+        Turn the input image into a 128-vector encoding
+        :param image: The input image tensor
+        :return: The 128-vector encoding
+        """
+        encoded_img = self.run_model(image)
+        return encoded_img
+
+
     def load_graph(self, model_file):
         """
         Load a frozen tensorflow model into memory.
@@ -39,7 +49,7 @@ class ModelEngineering:
         Get handles to input and output tensors.
         :return:
         """
-        input_name = "import/"
+        input_name = "input"
         output_name = 'Bottleneck'
         input_operation = graph.get_operation_by_name(input_name)
         output_operation = graph.get_operation_by_name(output_name)
@@ -54,7 +64,7 @@ class ModelEngineering:
             outputs = tf.get_variable('Bottleneck')
             return inception, inputs, outputs
 
-    def run(self, inputs):
+    def run_model(self, inputs):
         """
         Encode the input images
         :return:
