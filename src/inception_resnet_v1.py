@@ -19,10 +19,6 @@ As described in http://arxiv.org/abs/1602.07261.
     on Learning
   Christian Szegedy, Sergey Ioffe, Vincent Vanhoucke, Alex Alemi
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
@@ -151,7 +147,8 @@ def inference(images, keep_probability, phase_train=True,
                         normalizer_fn=slim.batch_norm,
                         normalizer_params=batch_norm_params):
         return inception_resnet_v1(images, is_training=phase_train,
-                                   dropout_keep_prob=keep_probability, bottleneck_layer_size=bottleneck_layer_size,
+                                   dropout_keep_prob=keep_probability,
+                                   bottleneck_layer_size=bottleneck_layer_size,
                                    reuse=reuse)
 
 
