@@ -1,57 +1,50 @@
 import tensorflow as tf
-import numpy as np
-import argparse
-from inception_resnet_v1 import   inference
+from inception_resnet_v1 import inference
 
 
+class InceptionTripletLoss:
 
-#input = tf.placeholder(tf.float32,shpae=(None,182,182  ,3),name='input')
-#positive = tf.placeholder (tf.float32, shpae=(None,182,182  ,3), name='positive')
-#negative = tf.placeholder (tf.float32, shpae=(None,182,182  ,3), name='negative')
+    def __init__(self):
+        self.inputs_shape = (None, 182, 182, 3)
+        # A 4-D tensor of size [batch_size, height, width, 3].
+        self.inputs_ph = tf.placeholder(tf.float32, shape=self.inputs_shape, name='positive')
+        self.positives_ph = tf.placeholder(tf.float32, shape=self.inputs_shape, name='positive')
+        self.negatives_ph = tf.placeholder(tf.float32, shape=self.inputs_shape, name='negative')
 
+        self.embeddings = self.build_model()
+        self.loss = self.triplet_loss()
 
-def triplet_loss (anchor=tf.placeholder, positive=tf.placeholder, negative=tf.placeholder, alpha=0.2):
-	"""Calculate the triplet loss according to the FaceNet paper
+    def triplet_loss(self, alpha=0.2):
+        """
+        Calculates the triplet loss according to the FaceNet paper.
+        :param anchors: The embeddings of anchor samples.
+        :param positives: The place holder for embeddings of positive samples.
+        :param negatives: The place holder for embeddings of negative samples.
+        :param alpha: The margin
+        :return: The value of triplet loss
+        """
 
-	Args:
-	  anchor: the embeddings for the anchor images.
-	  positive: the embeddings for the positive images.
-	  negative: the embeddings for the negative images.
-	  alpha:
+        pos_dist = tf.reduce_sum(tf.square(tf.subtract(self.inputs_ph, self.positives_ph)), 1)
+        neg_dist = tf.reduce_sum(tf.square(tf.subtract(self.inputs_ph, self.negatives_ph)), 1)
+        basic_loss = tf.add(tf.subtract(pos_dist, neg_dist), alpha)
+        tri_loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
 
-	Returns:
-	  the triplet loss according to the FaceNet paper as a float tensor.
+        regularization_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+        total_loss = tf.add_n([tri_loss] + regularization_losses, name='total_loss')
 
-	"""
-	pos_dist = tf.reduce_sum (tf.square (tf.subtract (anchor, positive)), 1)
-	neg_dist = tf.reduce_sum (tf.square (tf.subtract (anchor, negative)), 1)
-	basic_loss = tf.add (tf.subtract (pos_dist, neg_dist), alpha)
-	loss = tf.reduce_mean (tf.maximum (basic_loss, 0.0), 0)
+        return total_loss
 
-	return loss
-
-
-def total_loss (triple_loss):
-	regularization_losses = tf.get_collection (tf.GraphKeys.REGULARIZATION_LOSSES)
-	return tf.add_n ([ triple_loss ] + regularization_losses, name='total_loss')
-
-def inception (input, dropout_keep_prob=0.8, is_training=True,
-                        bottleneck_layer_size=128,weight_decay=0.0 ,reuse=None):
-
-	net,end_points =  inference(input,dropout_keep_prob,is_training,bottleneck_layer_size,weight_decay,reuse)
-	embedings  = tf.nn.l2_normalize(net, 1, 1e-10, name='embeddings')
-	return embedings , end_points
-
-'''def parse_arguments (argv) :
-	parser = argparse.ArgumentParser()
-	parser.add_argument('--input_size', type=str, help='',default=(100,100))
-	parser.add_argument ('--alpa', type =int , help='', default=0.2)
-	return  parser.parse_args(argv)'''
-
-def make_pso_neg( shape = (None,182,182,3)):
-		positive = tf.placeholder(tf.float32,shape=shape,name='positive')
-		negative = tf.placeholder(tf.float32,shape=shape,name='negative')
-		return  positive,negative
-
-def train () :
-	pass
+    def build_model(self, dropout_keep_prob=0.8, is_training=True, bottleneck_layer_size=128,
+                    weight_decay=0.0):
+        """
+        Builds the inception model.
+        :param dropout_keep_prob: float, the fraction to keep before final layer
+        :param is_training: Whether is training or not
+        :param bottleneck_layer_size: The size of the logits outputs of the model
+        :param weight_decay: This penalizes large weights
+        :return: The normalized logits outputs of the model
+        """
+        net, end_points = inference(self.inputs_ph, dropout_keep_prob, is_training,
+                                    bottleneck_layer_size, weight_decay)
+        embeddings = tf.nn.l2_normalize(net, 1, 1e-10, name='embeddings')
+        return embeddings
