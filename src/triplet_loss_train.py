@@ -48,10 +48,10 @@ def inception (input, dropout_keep_prob=0.8, is_training=True,
 	parser.add_argument ('--alpa', type =int , help='', default=0.2)
 	return  parser.parse_args(argv)'''
 
-'''def make_pso_neg( shape = (None,182,182,3)):
+def make_pso_neg( shape = (None,182,182,3)):
 		positive = tf.placeholder(tf.float32,shape=shape,name='positive')
 		negative = tf.placeholder(tf.float32,shape=shape,name='negative')
-		return  positive,negative'''
+		return  positive,negative
 
 def train () :
 	pass
