@@ -53,6 +53,6 @@ class InceptionTripletLoss:
 		embeddings = tf.nn.l2_normalize (net, 1, 1e-10, name='embeddings')
 		return embeddings
 
-	def optimizer (self,learning_rate=0.001,beta1=0.9,beta2=0.999,epsilon=1e-08):
+	def optimizer (self,learning_rate=0.01,beta1=0.9,beta2=0.999,epsilon=1e-08):
 		return tf.train.AdamOptimizer(learning_rate,beta1,beta2,epsilon)
 
