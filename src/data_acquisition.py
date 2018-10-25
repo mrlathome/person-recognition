@@ -2,9 +2,9 @@
 Acquires data from multiple sources
 """
 
+import matplotlib.image
 import os
 
-import matplotlib.image
 import numpy as np
 import scipy.misc
 
@@ -22,17 +22,20 @@ class DataAcquisition:
         """
 
         imgs_dir = os.path.join(self.pkg_dir, 'dataset', name)
-        images = np.array([])
-        labels = np.array([])
+        images = []
+        labels = []
         for file in os.listdir(imgs_dir):
             name_parts = file.split('.')
             if name_parts[-1] == 'jpg':
                 img_path = os.path.join(imgs_dir, file)
                 img = matplotlib.image.imread(img_path)
-                scipy.misc.imresize(img, (img_size, img_size))
-                np.append(images, img)
+                img = scipy.misc.imresize(img, (img_size, img_size))
+                images.append(img)
                 label = int(name_parts[0])
-                np.append(labels, label)
+                labels.append(label)
+
+        images = np.array(images)
+        labels = np.array(labels)
 
         return images, labels
 

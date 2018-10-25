@@ -1,10 +1,13 @@
+#!/usr/bin/python
+
 """
 Handles ros operations necessary for using the package.
 """
 
 import roslib
 import rospkg
-import numpy as np
+import rospy
+
 from execution import Execution
 
 package_name = 'ros-person-recognition'
@@ -15,7 +18,7 @@ pkg_dir = rp.get_path(package_name)
 
 class Deployment:
     """
-    Performs the functions for serving the customer.
+    Perform the actions to serve the customer.
     """
 
     def __init__(self, pkg_dir):
@@ -23,12 +26,13 @@ class Deployment:
         self.execution = Execution(self.pkg_dir)
 
     def run(self):
-        pass
+        result = self.execution.test()
+        print('\n', 'Result:', result)
 
 
 def main():
     """
-    Runs the program.
+    Run the program.
     :return:
     """
     rospy.init_node(package_name)

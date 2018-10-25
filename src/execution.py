@@ -2,6 +2,8 @@
 Creates the necessary objects and executes functions of the system.
 """
 
+import numpy as np
+
 from data_acquisition import DataAcquisition
 from data_processing import DataProcessing
 from model_engineering import ModelEngineering
@@ -29,10 +31,12 @@ class Execution:
             uids.append(uid)
         return uids
 
-    def get_sample(self):
+    def test(self):
         """
-        Gets the latest sample from the input stream.
-        :return: The sample image
+        Encode an image using the model for testing
+        :return: The embedding of a test image
         """
-        image = self.data_acquisition.read_stream()
-        return image
+        images, labels = self.data_acquisition.load_data('test', 160)
+        test_image = np.array([images[2]])
+        test_embedding = self.model_engineering.encode(test_image)
+        return test_embedding

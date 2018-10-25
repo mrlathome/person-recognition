@@ -14,8 +14,9 @@ class ModelEngineering:
         self.pkg_dir = pkg_dir
         self.image_size = 128
         self.embedding_size = 128
-        self.frozen_graph_path = os.path.join(pkg_dir, 'InceptionResNetV1-VGGFace2')
-        self.session = tf.Session()
+        self.frozen_graph_path = os.path.join(pkg_dir, 'InceptionResNetV1-VGGFace2', '20180402-114759.pb')
+        self.graph = tf.Graph()
+        self.session = tf.Session(graph=self.graph)
         self.imgs_ph, self.phase_train_ph, self.embs_ph, self.emb_size_ph = self.load_model(self.frozen_graph_path)
 
     def load_model(self, model, input_map=None):
@@ -25,30 +26,31 @@ class ModelEngineering:
         :param input_map: The input map
         :return: The place holders for input dataset, phase train, embeddings, and the embedding size
         """
-        # Check if the model is a model directory (containing a metagraph and a checkpoint file)
-        #  or if it is a protobuf file with a frozen graph
-        model_exp = os.path.expanduser(model)
-        if os.path.isfile(model_exp):
-            print('Model filename: %s' % model_exp)
-            with gfile.FastGFile(model_exp, 'rb') as f:
-                graph_def = tf.GraphDef()
-                graph_def.ParseFromString(f.read())
-                tf.import_graph_def(graph_def, input_map=input_map, name='')
-        else:
-            print('Model directory: %s' % model_exp)
-            meta_file, ckpt_file = self.get_model_filenames(model_exp)
+        with self.graph.as_default():
+            # Check if the model is a model directory (containing a metagraph and a checkpoint file)
+            #  or if it is a protobuf file with a frozen graph
+            model_exp = os.path.expanduser(model)
+            if os.path.isfile(model_exp):
+                print('Model filename: %s' % model_exp)
+                with gfile.FastGFile(model_exp, 'rb') as f:
+                    graph_def = tf.GraphDef()
+                    graph_def.ParseFromString(f.read())
+                    tf.import_graph_def(graph_def, input_map=input_map, name='')
+            else:
+                print('Model directory: %s' % model_exp)
+                meta_file, ckpt_file = self.get_model_filenames(model_exp)
 
-            print('Metagraph file: %s' % meta_file)
-            print('Checkpoint file: %s' % ckpt_file)
+                print('Metagraph file: %s' % meta_file)
+                print('Checkpoint file: %s' % ckpt_file)
 
-            saver = tf.train.import_meta_graph(os.path.join(model_exp, meta_file), input_map=input_map)
-            saver.restore(self.session, os.path.join(model_exp, ckpt_file))
+                saver = tf.train.import_meta_graph(os.path.join(model_exp, meta_file), input_map=input_map)
+                saver.restore(self.session, os.path.join(model_exp, ckpt_file))
 
-        # Get input and output tensors
-        imgs_ph = tf.get_default_graph.get_tensor_by_name("input:0")
-        embs_ph = tf.get_default_graph.get_tensor_by_name("embeddings:0")
-        phase_train_ph = tf.get_default_graph.get_tensor_by_name("phase_train:0")
-        emb_size = embs_ph.get_shape()[1]
+            # Get input and output tensors
+            imgs_ph = self.graph.get_tensor_by_name("input:0")
+            embs_ph = self.graph.get_tensor_by_name("embeddings:0")
+            phase_train_ph = self.graph.get_tensor_by_name("phase_train:0")
+            emb_size = embs_ph.get_shape()[1]
 
         return imgs_ph, phase_train_ph, embs_ph, emb_size
 
