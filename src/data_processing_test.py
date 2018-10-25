@@ -11,12 +11,12 @@ from data_processing import encode
 class DataPreprocessingTestCase(unittest.TestCase):
 
     def test_encode(self):
-        preprocessed_data = cv2.imread('images/andrew.jpg')
+        preprocessed_data = cv2.imread('dataset/andrew.jpg')
         encoded_image = encode(preprocessed_data)
         self.assertEqual(len(encoded_image) == 128, True)
 
     def test_preprocess(self):
-        data = cv2.imread('images/andrew.jpg')
+        data = cv2.imread('dataset/andrew.jpg')
 
 
 if __name__ == '__main__':

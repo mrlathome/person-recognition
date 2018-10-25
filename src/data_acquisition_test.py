@@ -19,7 +19,7 @@ class DataAcquisitionTestCase(unittest.TestCase):
         :return: None
         """
 
-        file_path = os.path.join('..', 'images', 'andrew.jpg')
+        file_path = os.path.join('..', 'dataset', 'andrew.jpg')
         image = load_img(file_path)
 
         condition = image.ndim == 3
