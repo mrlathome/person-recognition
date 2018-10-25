@@ -17,7 +17,19 @@ class ModelEngineering:
         self.frozen_graph_path = os.path.join(pkg_dir, 'InceptionResNetV1-VGGFace2', '20180402-114759.pb')
         self.graph = tf.Graph()
         self.session = tf.Session(graph=self.graph)
+        self.imgs_ph = None
+        self.phase_train_ph = None
+        self.embs_ph = None
+        self.emb_size_ph = None
+        self.initialized = False
+
+    def initialize(self):
+        """
+        Call load_model method and get input/output tensors
+        :return: True, if everything goes well
+        """
         self.imgs_ph, self.phase_train_ph, self.embs_ph, self.emb_size_ph = self.load_model(self.frozen_graph_path)
+        return True
 
     def load_model(self, model, input_map=None):
         """
@@ -91,6 +103,9 @@ class ModelEngineering:
         :param images: The input dataset tensor
         :return: The 128-vector embeddings
         """
+        if not self.initialized:
+            self.initialized = self.initialize()
+
         feed_dict = {self.imgs_ph: images, self.phase_train_ph: False}
         emb_array = self.session.run(self.embs_ph, feed_dict=feed_dict)
         return emb_array

@@ -2,11 +2,11 @@
 Acquires data from multiple sources
 """
 
-import matplotlib.image
 import os
 
+import cv2
+import matplotlib.image
 import numpy as np
-import scipy.misc
 
 
 class DataAcquisition:
@@ -27,10 +27,11 @@ class DataAcquisition:
         for file in os.listdir(imgs_dir):
             name_parts = file.split('.')
             if name_parts[-1] == 'jpg':
-                img_path = os.path.join(imgs_dir, file)
-                img = matplotlib.image.imread(img_path)
-                img = scipy.misc.imresize(img, (img_size, img_size))
-                images.append(img)
+                image_path = os.path.join(imgs_dir, file)
+                image = cv2.imread(image_path)
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                image = cv2.resize(image, (img_size, img_size))
+                images.append(image)
                 label = int(name_parts[0])
                 labels.append(label)
 
@@ -49,5 +50,5 @@ def load_img(file):
     # Creating an empty array only to see the test fail
     # img = np.array([])
     # Load image file from disk
-    img = image.imread(file)
+    img = matplotlib.image.imread(file)
     return img
