@@ -14,7 +14,7 @@ class InceptionTripletLoss:
 
 		self.embeddings = self.build_model ()
 		self.loss = self.triplet_loss ()
-		self.adam_opt=self.optimizer(self.loss)
+		self.adam_opt=self.optimizer()
 
 
 
