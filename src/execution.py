@@ -17,7 +17,9 @@ class Execution:
         self.data_acquisition = DataAcquisition(pkg_dir)
         self.data_processing = DataProcessing(self.pkg_dir)
         self.model_engineering = ModelEngineering(self.pkg_dir)
-        for sample in self.data_acquisition.warehouse.get_all():
+        for sample in self.data_acquisition.trn_wh.get_all():
+            sample.embedding = self.model_engineering.encode([sample.image])
+        for sample in self.data_acquisition.tst_wh.get_all():
             sample.embedding = self.model_engineering.encode([sample.image])
 
     def visualize(self, sample):
@@ -61,6 +63,6 @@ class Execution:
         Encode an image using the model for testing
         :return: The embedding of a test image
         """
-        sample = self.data_acquisition.warehouse.get_all()[0]
+        sample = self.data_acquisition.tst_wh.get_all()[0]
         self.visualize(sample)
         return sample.embedding

@@ -100,25 +100,27 @@ class DataAcquisition:
     def __init__(self, pkg_dir):
         self.pkg_dir = pkg_dir
         self.img_size = 160
-        self.warehouse = Warehouse()
-        train_dir = os.path.join(self.pkg_dir, 'dataset', 'train')
-        # test_dir = os.path.join(self.pkg_dir, 'dataset', 'test')
-        self.load(train_dir)
-        # self.load(test_dir)
+        trn_dir = os.path.join(self.pkg_dir, 'dataset', 'train')
+        tst_dir = os.path.join(self.pkg_dir, 'dataset', 'test')
+        self.trn_wh = self.load(trn_dir)
+        self.tst_wh = self.load(tst_dir)
 
-    def load(self, imgs_dir):
+    def load(self, directory):
         """
-        Read a data set to the warehouse
-        :return: None
+        Read a data set and create a new warehouse
+        :param directory: the directory of the dataset
+        :return: the warehouse of the data set
         """
-        for file in os.listdir(imgs_dir):
+        warehouse = Warehouse()
+        for file in os.listdir(directory):
             name_parts = file.split('.')
             if name_parts[-1] == 'jpg':
                 sample = Sample()
-                image_path = os.path.join(imgs_dir, file)
+                image_path = os.path.join(directory, file)
                 image = cv2.imread(image_path)
                 image = cv2.resize(image, (self.img_size, self.img_size))
                 label = int(name_parts[0])
                 sample.image = image
                 sample.uid = label
-                self.warehouse.add(sample)
+                warehouse.add(sample)
+        return warehouse
