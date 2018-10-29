@@ -3,7 +3,6 @@ Acquires data from multiple sources
 """
 
 import os
-
 import cv2
 
 
