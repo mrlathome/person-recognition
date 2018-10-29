@@ -5,50 +5,120 @@ Acquires data from multiple sources
 import os
 
 import cv2
-import matplotlib.image
-import numpy as np
+
+
+class Sample:
+    def __init__(self, image=None, uid=None):
+        """
+        Initialize the sample
+        :param image: the image
+        :param uid: the UID
+        """
+        self.image = image
+        self.uid = uid
+        # The 512-vector corresponding to the encoded image
+        self.embedding = None
+        self.name = None
+
+
+class Record:
+    def __init__(self, sample):
+        """
+        Initialize the record
+        :param uid: the UID
+        """
+        self.uid = sample.uid
+        self.name = None
+        self.samples = []
+        self.samples.append(sample)
+
+    def add(self, sample):
+        """
+        Add a sample to the a record
+        :param sample: the new sample
+        :return: None
+        """
+        self.samples.append(sample)
+
+    def delete(self, sample):
+        """
+        Delete a sample from a record
+        :param sample: the sample to be deleted
+        :return: None
+        """
+        if sample in self.samples:
+            self.samples.remove(sample)
+
+
+class Warehouse:
+    def __init__(self):
+        self.records = {}
+
+    def add(self, sample):
+        """
+        Add a new sample
+        :param sample: the sample
+        :return: None
+        """
+        if sample.uid in self.records.keys():
+            self.records[sample.uid].add(sample)
+        else:
+            self.records[sample.uid] = Record(sample)
+
+    def delete(self, uid):
+        """
+        Delete an existing record
+        :param uid: the UID
+        :return: None
+        """
+        if uid in self.records.keys():
+            self.records.pop(uid)
+
+    def get(self, uid):
+        """
+        Retrieve a record by UID
+        :param uid: the query UID
+        :return: a record of samples
+        """
+        for record in self.records:
+            if record.uid == uid:
+                return record
+
+    def get_all(self):
+        """
+        Retrieve every existing sample
+        :return: a list of samples
+        """
+        samples = []
+        for record in self.records.values():
+            for sample in record.samples:
+                samples.append(sample)
+        return samples
 
 
 class DataAcquisition:
     def __init__(self, pkg_dir):
         self.pkg_dir = pkg_dir
+        self.img_size = 160
+        self.warehouse = Warehouse()
+        train_dir = os.path.join(self.pkg_dir, 'dataset', 'train')
+        # test_dir = os.path.join(self.pkg_dir, 'dataset', 'test')
+        self.load(train_dir)
+        # self.load(test_dir)
 
-    def load_data(self, name, img_size):
+    def load(self, imgs_dir):
         """
-        Read a dataset of images
-        :param name: train/test set directory name
-        :param img_size: image size
-        :return: numpy arrays of images and labels
+        Read a data set to the warehouse
+        :return: None
         """
-
-        imgs_dir = os.path.join(self.pkg_dir, 'dataset', name)
-        images = []
-        labels = []
         for file in os.listdir(imgs_dir):
             name_parts = file.split('.')
             if name_parts[-1] == 'jpg':
+                sample = Sample()
                 image_path = os.path.join(imgs_dir, file)
                 image = cv2.imread(image_path)
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                image = cv2.resize(image, (img_size, img_size))
-                images.append(image)
+                image = cv2.resize(image, (self.img_size, self.img_size))
                 label = int(name_parts[0])
-                labels.append(label)
-
-        images = np.array(images)
-        labels = np.array(labels)
-
-        return images, labels
-
-
-def load_img(file):
-    """
-    Reads image from disk
-    :param file: image file path
-    :return: RGB image as numpy array
-    """
-    # Creating an empty array only to see the test fail
-    # img = np.array([])
-    # Load image file from disk
-    img = matplotlib.image.imread(file)
-    return img
+                sample.image = image
+                sample.uid = label
+                self.warehouse.add(sample)

@@ -9,7 +9,6 @@ import unittest
 
 import cv2
 import numpy as np
-import tensorflow as tf
 
 from model_engineering import ModelEngineering
 
