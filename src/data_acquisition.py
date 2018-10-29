@@ -102,10 +102,10 @@ class DataAcquisition:
         self.img_size = 160
         trn_dir = os.path.join(self.pkg_dir, 'dataset', 'train')
         tst_dir = os.path.join(self.pkg_dir, 'dataset', 'test')
-        self.trn_wh = self.load(trn_dir)
-        self.tst_wh = self.load(tst_dir)
+        self.trn_wh = self.create_wh(trn_dir)
+        self.tst_wh = self.create_wh(tst_dir)
 
-    def load(self, directory):
+    def create_wh(self, directory):
         """
         Read a data set and create a new warehouse
         :param directory: the directory of the dataset
