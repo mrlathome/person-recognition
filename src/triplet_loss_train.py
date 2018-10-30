@@ -16,7 +16,7 @@ class InceptionTripletLoss:
 
         self.embeddings = self.build_model()
         self.loss = self.triplet_loss()
-        self.adam_opt = self.optimizer()
+        self.adam_opt = self.optimize()
 
     def triplet_loss(self, alpha=0.2):
         """
@@ -53,8 +53,8 @@ class InceptionTripletLoss:
         embeddings = tf.nn.l2_normalize(net, 1, 1e-10, name='embeddings')
         return embeddings
 
-    def optimizer(self, learning_rate=0.01, beta1=0.9, beta2=0.999, epsilon=1e-08):
-        return tf.train.AdamOptimizer(learning_rate, beta1, beta2, epsilon)
+    def optimize(self, learning_rate=0.01, beta1=0.9, beta2=0.999, epsilon=1e-08):
+        return tf.train.AdamOptimizer(learning_rate, beta1, beta2, epsilon).minimize(self.loss)
 
     def add_loss_summmary(self, log_dir=os.path.join(os.getcwd(), 'log'), tag='loss', value=0.00):
         if not os.path.exists(log_dir):
