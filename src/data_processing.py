@@ -2,12 +2,22 @@
 process data and produce valid output for other moduls
 """
 
-import numpy as np
+import cv2
 
 
 class DataProcessing:
-    def __init__(self, pkg_dir):
-        self.pkg_dir = pkg_dir
+    def __init__(self):
+        self.img_size = 160
+
+    def process(self, image):
+        """
+        Process the input image
+        :param image: the input image
+        :return: the processed image
+        """
+        # Resize the image
+        image = cv2.resize(image, (self.img_size, self.img_size))
+        return image
 
     def detect_faces(self, image):
         """

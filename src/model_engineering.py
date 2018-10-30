@@ -100,8 +100,8 @@ class ModelEngineering:
     def encode(self, images):
         """
         Run the forward pass to calculate embeddings.
-        :param images: The input dataset tensor
-        :return: The 128-vector embeddings
+        :param images: The input (4D) tensor
+        :return: The 512-vector embeddings
         """
         if not self.initialized:
             self.initialized = self.initialize()

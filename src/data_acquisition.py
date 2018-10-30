@@ -1,10 +1,6 @@
 """
-Acquires data from multiple sources
+Acquire data from multiple sources
 """
-
-import os
-
-import cv2
 
 
 class Sample:
@@ -30,7 +26,7 @@ class Person:
         self.uid = sample.uid
         self.name = None
         self.samples = []
-        self.samples.append(sample)
+        self.add(sample)
 
     def add(self, sample):
         """
@@ -107,30 +103,6 @@ class Warehouse:
 
 
 class DataAcquisition:
-    def __init__(self, pkg_dir):
-        self.pkg_dir = pkg_dir
-        self.img_size = 160
-        trn_dir = os.path.join(self.pkg_dir, 'dataset', 'train')
-        tst_dir = os.path.join(self.pkg_dir, 'dataset', 'test')
-        self.trn_wh = self.create_wh(trn_dir)
-        self.tst_wh = self.create_wh(tst_dir)
-
-    def create_wh(self, directory):
-        """
-        Read a data set and create a new warehouse
-        :param directory: the directory of the data set
-        :return: the warehouse containing the data set
-        """
-        warehouse = Warehouse()
-        for file in os.listdir(directory):
-            name_parts = file.split('.')
-            if name_parts[-1] == 'jpg':
-                sample = Sample()
-                image_path = os.path.join(directory, file)
-                image = cv2.imread(image_path)
-                image = cv2.resize(image, (self.img_size, self.img_size))
-                label = int(name_parts[0])
-                sample.image = image
-                sample.uid = label
-                warehouse.add(sample)
-        return warehouse
+    def __init__(self):
+        self.trn_wh = None
+        self.tst_wh = None

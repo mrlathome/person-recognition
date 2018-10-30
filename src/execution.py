@@ -2,11 +2,14 @@
 Creates the necessary objects and executes functions of the system.
 """
 
+import os
 from copy import deepcopy
 
 import cv2
 
 from data_acquisition import DataAcquisition
+from data_acquisition import Sample
+from data_acquisition import Warehouse
 from data_processing import DataProcessing
 from model_engineering import ModelEngineering
 
@@ -14,12 +17,22 @@ from model_engineering import ModelEngineering
 class Execution:
     def __init__(self, pkg_dir):
         self.pkg_dir = pkg_dir
-        self.data_acquisition = DataAcquisition(pkg_dir)
-        self.data_processing = DataProcessing(self.pkg_dir)
+        self.data_acquisition = DataAcquisition()
+        self.data_processing = DataProcessing()
         self.model_engineering = ModelEngineering(self.pkg_dir)
-        for sample in self.data_acquisition.trn_wh.get_all():
+
+    def acquire_data(self):
+        """
+        Read data sets, process them, and create warehouses for storing them
+        :return: None
+        """
+        trn_dir = os.path.join(self.pkg_dir, 'dataset', 'train')
+        tst_dir = os.path.join(self.pkg_dir, 'dataset', 'test')
+        self.data_acquisition.trn_wh = self.create_wh(trn_dir)
+        self.data_acquisition.tst_wh = self.create_wh(tst_dir)
+        for sample in self.data_acquisition.trn_wh.get_samples():
             sample.embedding = self.model_engineering.encode([sample.image])
-        for sample in self.data_acquisition.tst_wh.get_all():
+        for sample in self.data_acquisition.tst_wh.get_samples():
             sample.embedding = self.model_engineering.encode([sample.image])
 
     def visualize(self, sample):
@@ -66,3 +79,23 @@ class Execution:
         sample = self.data_acquisition.tst_wh.get_all()[0]
         self.visualize(sample)
         return sample.embedding
+
+    def create_wh(self, directory):
+        """
+        Read a data set and create a new warehouse
+        :param directory: the directory of the data set
+        :return: the warehouse containing the data set
+        """
+        warehouse = Warehouse()
+        for file in os.listdir(directory):
+            name_parts = file.split('.')
+            if name_parts[-1] == 'jpg':
+                sample = Sample()
+                image_path = os.path.join(directory, file)
+                image = cv2.imread(image_path)
+                image = self.data_processing.process(image)
+                label = int(name_parts[0])
+                sample.image = image
+                sample.uid = label
+                warehouse.add(sample)
+        return warehouse
