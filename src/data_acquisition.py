@@ -21,11 +21,11 @@ class Sample:
         self.name = None
 
 
-class Record:
+class Person:
     def __init__(self, sample):
         """
-        Initialize the record
-        :param uid: the UID
+        Initialize the Person
+        :param sample: the first sample
         """
         self.uid = sample.uid
         self.name = None
@@ -34,7 +34,7 @@ class Record:
 
     def add(self, sample):
         """
-        Add a sample to the a record
+        Add a sample to the a Person
         :param sample: the new sample
         :return: None
         """
@@ -42,7 +42,7 @@ class Record:
 
     def delete(self, sample):
         """
-        Delete a sample from a record
+        Delete a sample from a Person
         :param sample: the sample to be deleted
         :return: None
         """
@@ -52,7 +52,7 @@ class Record:
 
 class Warehouse:
     def __init__(self):
-        self.records = {}
+        self.persons = {}
 
     def add(self, sample):
         """
@@ -60,40 +60,50 @@ class Warehouse:
         :param sample: the sample
         :return: None
         """
-        if sample.uid in self.records.keys():
-            self.records[sample.uid].add(sample)
+        if sample.uid in self.persons.keys():
+            self.persons[sample.uid].add(sample)
         else:
-            self.records[sample.uid] = Record(sample)
+            self.persons[sample.uid] = Person(sample)
 
     def delete(self, uid):
         """
-        Delete an existing record
+        Delete an existing Person
         :param uid: the UID
         :return: None
         """
-        if uid in self.records.keys():
-            self.records.pop(uid)
+        if uid in self.persons.keys():
+            self.persons.pop(uid)
 
     def get(self, uid):
         """
-        Retrieve a record by UID
+        Retrieve a Person by UID
         :param uid: the query UID
-        :return: a record of samples
+        :return: samples of the Person
         """
-        for record in self.records:
-            if record.uid == uid:
-                return record
+        for person in self.persons:
+            if person.uid == uid:
+                return person
 
-    def get_all(self):
+    def get_samples(self):
         """
         Retrieve every existing sample
         :return: a list of samples
         """
         samples = []
-        for record in self.records.values():
-            for sample in record.samples:
+        for person in self.persons.values():
+            for sample in person.samples:
                 samples.append(sample)
         return samples
+
+    def get_persons(self):
+        """
+        Retrieve every existing Person
+        :return: a list of Persons
+        """
+        persons = []
+        for person in self.persons.values():
+            persons.append(person)
+        return persons
 
 
 class DataAcquisition:
@@ -108,8 +118,8 @@ class DataAcquisition:
     def create_wh(self, directory):
         """
         Read a data set and create a new warehouse
-        :param directory: the directory of the dataset
-        :return: the warehouse of the data set
+        :param directory: the directory of the data set
+        :return: the warehouse containing the data set
         """
         warehouse = Warehouse()
         for file in os.listdir(directory):
