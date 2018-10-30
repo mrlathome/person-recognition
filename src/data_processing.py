@@ -2,15 +2,27 @@
 process data and produce valid output for other moduls
 """
 
-import sys
-import tensorflow as tf
 import os
-import cv2
+import sys
+
 import align.detect_face
+import cv2
+import tensorflow as tf
+
 
 class DataProcessing:
-    def __init__(self, pkg_dir):
-        self.pkg_dir = pkg_dir
+    def __init__(self):
+        self.img_size = 160
+
+    def process(self, image):
+        """
+        Process the input image
+        :param image: the input image
+        :return: the processed image
+        """
+        # Resize the image
+        image = cv2.resize(image, (self.img_size, self.img_size))
+        return image
 
     def detect_faces(self, image):
         """
@@ -40,5 +52,4 @@ class DataProcessing:
                     img, minsize, pnet,
                     rnet, onet, threshold, factor)
 
-
-        return [int(x1),int(y1),int(x1 + w),int(y1 + h)]
+        return [int(x1), int(y1), int(x1 + w), int(y1 + h)]
