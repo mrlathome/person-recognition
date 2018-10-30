@@ -8,6 +8,10 @@ import align.detect_face
 
 
 class DataProcessing:
+    pnet_threshold = .6
+    rnet_threshold = .7
+    onet_threshold = .7
+
     def __init__(self):
         self.img_size = 160
 
@@ -43,5 +47,8 @@ class DataProcessing:
                 bounding_boxes, _ = align.detect_face.detect_face(
                     image, minsize, pnet,
                     rnet, onet, threshold, factor)
-        x1, y1, x2, y2, acc = bounding_boxes[0]
-        return [int(x1), int(y1), int(x2), int(y2)]
+        if len(bounding_boxes) != 0:
+            x1, y1, x2, y2, acc = bounding_boxes[0]
+            return [int(x1), int(y1), int(x2), int(y2)]
+        else:
+            return None
