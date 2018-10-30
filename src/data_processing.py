@@ -2,19 +2,26 @@
 process data and produce valid output for other moduls
 """
 
+import os
+import sys
+
 import sys
 import tensorflow as tf
 import align.detect_face
 
-
 class DataProcessing:
+    def __init__(self):
+        self.img_size = 160
 
-    pnet_threshold = .6
-    rnet_threshold = .7
-    onet_threshold = .7
-
-    def __init__(self, pkg_dir):
-        self.pkg_dir = pkg_dir
+    def process(self, image):
+        """
+        Process the input image
+        :param image: the input image
+        :return: the processed image
+        """
+        # Resize the image
+        image = cv2.resize(image, (self.img_size, self.img_size))
+        return image
 
     def detect_faces(self, image):
         """

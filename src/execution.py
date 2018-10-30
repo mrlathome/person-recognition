@@ -20,6 +20,7 @@ class Execution:
         self.data_acquisition = DataAcquisition()
         self.data_processing = DataProcessing()
         self.model_engineering = ModelEngineering(self.pkg_dir)
+        self.acquire_data()
 
     def acquire_data(self):
         """
