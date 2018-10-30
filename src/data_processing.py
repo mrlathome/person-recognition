@@ -2,12 +2,10 @@
 process data and produce valid output for other moduls
 """
 
-import os
-import sys
-
-import sys
+import cv2
 import tensorflow as tf
 import align.detect_face
+
 
 class DataProcessing:
     def __init__(self):
@@ -47,4 +45,3 @@ class DataProcessing:
                     rnet, onet, threshold, factor)
         x1, y1, x2, y2, acc = bounding_boxes[0]
         return [int(x1), int(y1), int(x2), int(y2)]
-
