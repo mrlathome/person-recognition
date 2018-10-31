@@ -65,11 +65,12 @@ class Execution:
         for bbox in faces_bboxes:
             xmin, xmax, ymin, ymax = bbox
             encoding = self.model_engineering.encode(image[xmin:xmax, ymin, ymax])
-            uid = self.model_engineering.knn_classify(encoding)
+            uid = self.model_engineering.knn_classify(self.data_acquisition.trn_wh,encoding)
             uids.append(uid)
         return uids
 
     def evaluate(self):
+
         pass
 
     def test(self):
