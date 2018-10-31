@@ -60,14 +60,14 @@ class Execution:
         :param image: The input image
         :return: The UID of the person
         """
-        faces_bboxes = self.data_processing.detect_faces(image)
-        uids = []
-        for bbox in faces_bboxes:
-            xmin, xmax, ymin, ymax = bbox
-            encoding = self.model_engineering.encode(image[xmin:xmax, ymin, ymax])
-            uid = self.model_engineering.knn_classify(encoding)
-            uids.append(uid)
-        return uids
+        face_bbox = self.data_processing.detect_faces(image)
+        # In case there isn't any face in the image
+        if not face_bbox:
+            return -1
+        xmin, ymin, xmax, ymax = face_bbox
+        embedding = self.model_engineering.encode(image[ymin:ymax, xmin:xmax])
+        uid = self.model_engineering.knn_classify(embedding)
+        return uid
 
     def evaluate(self):
         pass

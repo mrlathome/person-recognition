@@ -4,6 +4,7 @@ process data and produce valid output for other moduls
 
 import cv2
 import tensorflow as tf
+
 import align.detect_face
 
 

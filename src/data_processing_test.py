@@ -1,10 +1,10 @@
 """
 Test cases for data preprocessing modul
 """
-import cv2
 import unittest
+
+import cv2
 import numpy as np
-import tensorflow as tf
 
 from data_processing import DataProcessing
 
