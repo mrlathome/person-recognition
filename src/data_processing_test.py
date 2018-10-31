@@ -1,22 +1,30 @@
 """
 Test cases for data preprocessing modul
 """
-import cv2
 import unittest
-import tensorflow as tf
 
-from data_processing import encode
+import cv2
+import numpy as np
+
+from data_processing import DataProcessing
 
 
 class DataPreprocessingTestCase(unittest.TestCase):
 
-    def test_encode(self):
-        preprocessed_data = cv2.imread('dataset/andrew.jpg')
-        encoded_image = encode(preprocessed_data)
-        self.assertEqual(len(encoded_image) == 128, True)
-
-    def test_preprocess(self):
-        data = cv2.imread('dataset/andrew.jpg')
+    def test_detect_faces(self):
+        """
+        test the detect_dace function in data_processing module
+        :return: None
+        """
+        face_img = cv2.imread('../dataset/test/0000.0000.jpg')
+        car_imag = np.random.randint(255, size=(900, 800, 3), dtype=np.uint8)
+        data_processing = DataProcessing()
+        bounding_box_1 = data_processing.detect_faces(face_img)
+        bounding_box_2 = data_processing.detect_faces(car_imag)
+        condition_1 = len(bounding_box_1) == 4
+        condition_2 = bounding_box_2 == None
+        condition = condition_1 and condition_2
+        self.assertEqual(condition, True)
 
 
 if __name__ == '__main__':
