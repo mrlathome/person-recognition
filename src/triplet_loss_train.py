@@ -56,10 +56,10 @@ class InceptionTripletLoss:
     def optimize(self, learning_rate=0.01, beta1=0.9, beta2=0.999, epsilon=1e-08):
         return tf.train.AdamOptimizer(learning_rate, beta1, beta2, epsilon).minimize(self.loss)
 
-    def add_loss_summmary(self, log_dir=os.path.join(os.getcwd(), 'log'), tag='loss', value=0.00):
+    def add_loss_summmary(self, log_dir=os.path.join(os.getcwd(), 'log'), tag='loss', loss=self.loss):
         if not os.path.exists(log_dir):
             os.mkdir(log_dir)
         s_writer = tf.summary.FileWriter(log_dir)
         s_scalar = tf.Summary()
-        s_scalar.value.add(tag=tag, simple_value=value)
+        s_scalar.value.add(tag=tag, simple_value=loss)
         return s_writer, s_scalar
