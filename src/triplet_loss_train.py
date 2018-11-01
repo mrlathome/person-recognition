@@ -56,7 +56,14 @@ class InceptionTripletLoss:
     def optimize(self, learning_rate=0.01, beta1=0.9, beta2=0.999, epsilon=1e-08):
         return tf.train.AdamOptimizer(learning_rate, beta1, beta2, epsilon).minimize(self.loss)
 
-    def add_loss_summmary(self, log_dir=os.path.join(os.getcwd(), 'log'), tag='loss', loss=self.loss):
+    def add_loss_summary(self, log_dir=os.path.join(os.getcwd(), 'log'), tag='loss', loss=self.loss):
+        """
+
+        :param log_dir: address directory for save loss summary
+        :param tag: seting tag for summary files
+        :param loss: loss value on each batch
+        :return:  s_scalar oject for set value loss and s_writer for write summary file
+        """
         if not os.path.exists(log_dir):
             os.mkdir(log_dir)
         s_writer = tf.summary.FileWriter(log_dir)
