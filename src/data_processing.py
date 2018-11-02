@@ -15,6 +15,13 @@ class DataProcessing:
 
     def __init__(self):
         self.img_size = 160
+        self.fn_size = 0
+        self.processed_samples_size = 0
+        self.graph = tf.Graph()
+        self.graph.as_default()
+        self.session = tf.Session()
+        self.session.as_default()
+        self.pnet, self.rnet, self.onet = align.detect_face.create_mtcnn(self.session, None)
 
     def process(self, image):
         """
@@ -33,23 +40,29 @@ class DataProcessing:
         :param image: The input image
         :return: A list of bounding boxes
         """
-        gpu_memory_fraction = 1.0
         minsize = 50
-        threshold = [DataProcessing.pnet_threshold, DataProcessing.rnet_threshold, DataProcessing.onet_threshold]
+        threshold = [self.pnet_threshold, self.rnet_threshold, self.onet_threshold]
         factor = 0.709
-        with tf.Graph().as_default():
-            gpu_options = tf.GPUOptions(
-                per_process_gpu_memory_fraction=gpu_memory_fraction)
-            sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options,
-                                                    log_device_placement=False))
-            with sess.as_default():
-                pnet, rnet, onet = align.detect_face.create_mtcnn(
-                    sess, None)
-                bounding_boxes, _ = align.detect_face.detect_face(
-                    image, minsize, pnet,
-                    rnet, onet, threshold, factor)
+        bounding_boxes, _ = align.detect_face.detect_face(image, minsize, self.pnet, self.rnet, self.onet, threshold,
+                                                          factor)
+        self.processed_samples_size += 1
+        print('Processed samples:', self.processed_samples_size)
         if len(bounding_boxes) != 0:
             x1, y1, x2, y2, acc = bounding_boxes[0]
             return [int(x1), int(y1), int(x2), int(y2)]
         else:
+            self.fn_size += 1
+            print('False negatives:', self.fn_size)
             return None
+
+    def crop(self, image, bbox):
+        """
+        Crop an image according to a bounding box
+        :param bbox: the bounding box
+        :return: the cropped image
+        """
+        if not bbox:
+            return image
+        xmin, ymin, xmax, ymax = bbox
+        cropped = image[ymin:ymax, xmin:xmax]
+        return cropped

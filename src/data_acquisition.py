@@ -2,6 +2,8 @@
 Acquire data from multiple sources
 """
 
+import cv2
+
 
 class Sample:
     def __init__(self, image=None, uid=None):
@@ -106,3 +108,26 @@ class DataAcquisition:
     def __init__(self):
         self.trn_wh = None
         self.tst_wh = None
+
+
+class CameStreamer:
+    def __init__(self):
+        self.cap = cv2.VideoCapture(0)
+
+    def get_frame(self):
+        """
+        Capture the latest frame
+        :return: the frame
+        """
+        ret, frame = self.cap.read()
+        if not ret:
+            print('Failed to read a frame.')
+            return None
+        return frame
+
+    def release(self):
+        """
+        Release the capture when everything is done
+        :return: None
+        """
+        self.cap.release()

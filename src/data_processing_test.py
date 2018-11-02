@@ -17,8 +17,9 @@ class DataPreprocessingTestCase(unittest.TestCase):
         :return: None
         """
         face_img = cv2.imread('../dataset/test/0000.0000.jpg')
-        car_imag = np.random.randint(255, size=(900, 800, 3), dtype=np.uint8)
+        car_imag = np.random.randint(255, size=(160, 160, 3), dtype=np.uint8)
         data_processing = DataProcessing()
+        print(type(face_img))
         bounding_box_1 = data_processing.detect_faces(face_img)
         bounding_box_2 = data_processing.detect_faces(car_imag)
         condition_1 = len(bounding_box_1) == 4

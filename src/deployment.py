@@ -26,8 +26,7 @@ class Deployment:
         self.execution = Execution(self.pkg_dir)
 
     def run(self):
-        result = self.execution.test()
-        print('\n', 'Result:', result)
+        self.execution.test()
 
 
 def main():
