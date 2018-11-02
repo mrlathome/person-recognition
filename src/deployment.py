@@ -26,7 +26,9 @@ class Deployment:
         self.execution = Execution(self.pkg_dir)
 
     def run(self):
-        self.execution.test()
+        # self.execution.test()
+        eval_result = self.execution.evaluate()
+        print('Evaluation result:', eval_result)
 
 
 def main():

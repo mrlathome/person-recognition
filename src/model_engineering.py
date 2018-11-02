@@ -6,14 +6,13 @@ import os
 import re
 
 import tensorflow as tf
+from sklearn import neighbors
 from tensorflow.python.platform import gfile
 
 
 class ModelEngineering:
     def __init__(self, pkg_dir):
         self.pkg_dir = pkg_dir
-        self.image_size = 128
-        self.embedding_size = 128
         self.frozen_graph_path = os.path.join(
             pkg_dir, 'InceptionResNetV1-VGGFace2', '20180402-114759.pb')
         self.graph = tf.Graph()
@@ -23,14 +22,18 @@ class ModelEngineering:
         self.embs_ph = None
         self.emb_size_ph = None
         self.initialized = False
+        # we create an instance of Neighbours Classifier and fit the data.
+        self.n_neighbors = 2
+        # weight function used in prediction. Possible values: 'uniform', 'distance', [callable]
+        self.weights = 'distance'
+        self.clf = neighbors.KNeighborsClassifier(self.n_neighbors, weights=self.weights)
 
     def initialize(self):
         """
         Call load_model method and get input/output tensors
         :return: True, if everything goes well
         """
-        self.imgs_ph, self.phase_train_ph, self.embs_ph, self.emb_size_ph = self.load_model(
-            self.frozen_graph_path)
+        self.imgs_ph, self.phase_train_ph, self.embs_ph, self.emb_size_ph = self.load_model(self.frozen_graph_path)
         return True
 
     def load_model(self, model, input_map=None):
@@ -115,7 +118,42 @@ class ModelEngineering:
         emb_array = self.session.run(self.embs_ph, feed_dict=feed_dict)
         return emb_array
 
-    def knn_classify(self, warehouse, query_emb):
+    def fit_knn(self, warehouse):
+        """
+        Fit the KNN classifier using the training data set
+        :param warehouse:
+        :return:
+        """
+        emb_array = []
+        uid_array = []
+        for sample in warehouse.get_samples():
+            emb_array.append(sample.embedding)
+            uid_array.append(sample.uid)
+        self.clf.fit(emb_array, uid_array)
+
+    def knn_classify(self, query):
+        """
+        Supervised KNN
+        :param query: the subject embedding
+        :return: the UID of the subject
+        """
+        detect_uid = self.clf.predict([query])
+        return detect_uid[0]
+
+    def knn_classifier_eval(self, warehouse):
+        """
+        Evaluate the KNN classifier on a test data set
+        :return: the accuracy
+        """
+        emb_array = []
+        uid_array = []
+        for sample in warehouse.get_samples():
+            emb_array.append(sample.embedding)
+            uid_array.append(sample.uid)
+        accuracy = self.clf.score(emb_array, uid_array)
+        return accuracy
+
+    def __knn_classify(self, warehouse, query_emb):
         """
         Classify the query embedding
         :param warehouse: the training warehouse

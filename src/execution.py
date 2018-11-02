@@ -22,6 +22,8 @@ class Execution:
         self.data_processing = DataProcessing()
         self.model_engineering = ModelEngineering(self.pkg_dir)
         self.cam_streamer = CameStreamer()
+        self.acquire_data()
+        self.model_engineering.fit_knn(self.data_acquisition.trn_wh)
 
     def acquire_data(self):
         """
@@ -74,25 +76,20 @@ class Execution:
         :param image: The input image
         :return: The UID of the person
         """
-        face_bbox = self.data_processing.detect_faces(image)
-        # In case there isn't any face in the image
-        if not face_bbox:
-            return -1
-        xmin, ymin, xmax, ymax = face_bbox
-        face_image = image[ymin:ymax, xmin:xmax]
-        face_image = self.data_processing.process(face_image)
-        embedding = self.model_engineering.encode(face_image)
+        # bbox = self.data_processing.detect_faces(image)
+        # face_image = self.data_processing.crop(image, bbox)
+        face_image = self.data_processing.process(image)
+        embedding = self.model_engineering.encode([face_image])[0]
         uid = self.model_engineering.knn_classify(embedding)
         return uid
 
     def evaluate(self):
-        samples_size = 0
-        tp_size = 0
-        for sample in self.data_acquisition.tst_wh.get_samples():
-            detect_uid = self.id(sample.image)
-            samples_size += 1
-            if detect_uid == sample.uid:
-                tp_size += 1
+        """
+        Evaluates the accuracy of the model on the test set
+        :return: the true positive rate
+        """
+        accuracy = self.model_engineering.knn_classifier_eval(self.data_acquisition.tst_wh)
+        return accuracy
 
     def test(self):
         """
@@ -104,7 +101,7 @@ class Execution:
             image = self.cam_streamer.get_frame()
             if image is None:
                 continue
-            print('image.shape', image.shape)
+            # print('image.shape', image.shape)
 
             bbox = self.data_processing.detect_faces(image)
             # image = self.data_processing.crop(image, bbox)
@@ -132,8 +129,8 @@ class Execution:
                 sample = Sample()
                 image_path = os.path.join(directory, file)
                 image = cv2.imread(image_path)
-                bbox = self.data_processing.detect_faces(image)
-                image = self.data_processing.crop(image, bbox)
+                #bbox = self.data_processing.detect_faces(image)
+                #image = self.data_processing.crop(image, bbox)
                 image = self.data_processing.process(image)
                 label = int(name_parts[0])
                 sample.image = image
