@@ -1,20 +1,20 @@
 """
 Loading models and running inferences
 """
-
 import os
 import re
 
+import numpy as np
 import tensorflow as tf
 from sklearn import neighbors
+from sklearn.svm import SVC
 from tensorflow.python.platform import gfile
 
 
 class ModelEngineering:
     def __init__(self, pkg_dir):
         self.pkg_dir = pkg_dir
-        self.frozen_graph_path = os.path.join(
-            pkg_dir, 'InceptionResNetV1-VGGFace2', '20180402-114759.pb')
+        self.frozen_graph_path = os.path.join(pkg_dir, 'InceptionResNetV1-VGGFace2', '20180402-114759.pb')
         self.graph = tf.Graph()
         self.session = tf.Session(graph=self.graph)
         self.imgs_ph = None
@@ -26,7 +26,9 @@ class ModelEngineering:
         self.n_neighbors = 2
         # weight function used in prediction. Possible values: 'uniform', 'distance', [callable]
         self.weights = 'distance'
-        self.clf = neighbors.KNeighborsClassifier(self.n_neighbors, weights=self.weights)
+        self.clf = neighbors.KNeighborsClassifier(self.n_neighbors, algorithm='ball_tree', weights=self.weights)
+        #self.clf = SVC(kernel='linear', probability=True)
+        self.classifier_filename_exp = os.path.join(self.pkg_dir, 'svc')
 
     def initialize(self):
         """
@@ -52,8 +54,7 @@ class ModelEngineering:
                 with gfile.FastGFile(model_exp, 'rb') as f:
                     graph_def = tf.GraphDef()
                     graph_def.ParseFromString(f.read())
-                    tf.import_graph_def(
-                        graph_def, input_map=input_map, name='')
+                    tf.import_graph_def(graph_def, input_map=input_map, name='')
             else:
                 print('Model directory: %s' % model_exp)
                 meta_file, ckpt_file = self.get_model_filenames(model_exp)
@@ -118,17 +119,91 @@ class ModelEngineering:
         emb_array = self.session.run(self.embs_ph, feed_dict=feed_dict)
         return emb_array
 
-    def fit_knn(self, warehouse):
+    def svc_fit(self, warehouse):
+        """
+        Train a SVC classifier
+        :return: the model
+        """
+        emb_array = np.array([])
+        uid_array = np.array([])
+        for sample in warehouse.get_samples():
+            if emb_array.ndim == 1:
+                emb_array = sample.embedding
+            else:
+                emb_array = np.vstack((emb_array, sample.embedding))
+            uid_array = np.append(uid_array, sample.uid)
+        print('emb_array.shape', emb_array.shape)
+        print('uid_array.shape', uid_array.shape)
+        self.clf = self.clf.fit(emb_array, uid_array)
+
+        # Create a list of class names
+        uids = np.unique(uid_array)
+        self.class_names = uids
+
+        # Saving classifier model
+        # with open(self.classifier_filename_exp, 'wb') as outfile:
+        #     pickle.dump((self.clf, class_names), outfile)
+        # print('Saved classifier model to file "%s"' % self.classifier_filename_exp)
+
+    def svc_classify(self, query):
+        """
+        Classify an embedding using a trained SVC
+        :param query: the embedding
+        :return: the UID
+        """
+        proba = self.clf.predict_proba([query])[0]
+        index = np.argmax(proba)
+        # print('proba[index]', proba[index])
+        # print('index', index)
+        uid = -1
+        if proba[index] > 0.1:
+            uid = index
+        return uid
+
+    def svc_eval(self, warehouse):
+        """
+        Evaluate the SVC model on a test data set
+        :return: the accuracy
+        """
+        # with open(self.classifier_filename_exp, 'rb') as infile:
+        #     (self.clf, class_names) = pickle.load(infile)
+        #
+        # print('Loaded classifier model from file "%s"' % self.classifier_filename_exp)
+
+        emb_array = np.array([])
+        uid_array = np.array([])
+        for sample in warehouse.get_samples():
+            if emb_array.ndim == 1:
+                emb_array = sample.embedding
+            else:
+                emb_array = np.vstack((emb_array, sample.embedding))
+            uid_array = np.append(uid_array, sample.uid)
+
+        predictions = self.clf.predict_proba(emb_array)
+        best_class_indices = np.argmax(predictions, axis=1)
+        best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
+
+        for i in range(len(best_class_indices)):
+            print('%4d  %s: %.3f' % (i, self.class_names[best_class_indices[i]], best_class_probabilities[i]))
+
+        accuracy = np.mean(np.equal(best_class_indices, uid_array))
+        print('Accuracy: %.3f' % accuracy)
+        return accuracy
+
+    def knn_fit(self, warehouse):
         """
         Fit the KNN classifier using the training data set
         :param warehouse:
         :return:
         """
-        emb_array = []
-        uid_array = []
+        emb_array = np.array([])
+        uid_array = np.array([])
         for sample in warehouse.get_samples():
-            emb_array.append(sample.embedding)
-            uid_array.append(sample.uid)
+            if emb_array.ndim == 1:
+                emb_array = sample.embedding
+            else:
+                emb_array = np.vstack((emb_array, sample.embedding))
+            uid_array = np.append(uid_array, sample.uid)
         self.clf.fit(emb_array, uid_array)
 
     def knn_classify(self, query):
@@ -137,19 +212,28 @@ class ModelEngineering:
         :param query: the subject embedding
         :return: the UID of the subject
         """
-        detect_uid = self.clf.predict([query])
-        return detect_uid[0]
+        proba = self.clf.predict_proba([query])[0]
+        index = np.argmax(proba)
+        uid = -1
+        if proba[index] > 0.5:
+            uid = index
+        # print('proba[index]', proba[index])
+        # print('detect_uid', uid)
+        return uid
 
-    def knn_classifier_eval(self, warehouse):
+    def knn_eval(self, warehouse):
         """
         Evaluate the KNN classifier on a test data set
         :return: the accuracy
         """
-        emb_array = []
-        uid_array = []
+        emb_array = np.array([])
+        uid_array = np.array([])
         for sample in warehouse.get_samples():
-            emb_array.append(sample.embedding)
-            uid_array.append(sample.uid)
+            if emb_array.ndim == 1:
+                emb_array = sample.embedding
+            else:
+                emb_array = np.vstack((emb_array, sample.embedding))
+            uid_array = np.append(uid_array, sample.uid)
         accuracy = self.clf.score(emb_array, uid_array)
         return accuracy
 
