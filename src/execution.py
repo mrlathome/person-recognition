@@ -7,9 +7,9 @@ from copy import deepcopy
 
 import cv2
 
-from data_acquisition import CameStreamer
+from data_acquisition import CamStreamer
 from data_acquisition import DataAcquisition
-from data_acquisition import Sample
+from data_acquisition import Face
 from data_acquisition import Warehouse
 from data_processing import DataProcessing
 from model_engineering import ModelEngineering
@@ -21,8 +21,8 @@ class Execution:
         self.data_acquisition = DataAcquisition()
         self.data_processing = DataProcessing()
         self.model_engineering = ModelEngineering(self.pkg_dir)
-        self.cam_streamer = CameStreamer()
-        self.acquire_data_one_by_one()
+        self.cam_streamer = CamStreamer()
+        self.acquire_data()
         self.model_engineering.knn_fit(self.data_acquisition.trn_wh)
 
     def acquire_data(self):
@@ -34,32 +34,10 @@ class Execution:
         tst_dir = os.path.join(self.pkg_dir, 'dataset', 'test')
         self.data_acquisition.trn_wh = self.create_wh(trn_dir)
         self.data_acquisition.tst_wh = self.create_wh(tst_dir)
-        trn_imgs = []
-        tst_imgs = []
-        for sample in self.data_acquisition.trn_wh.get_samples():
-            trn_imgs.append(sample.image)
-        for sample in self.data_acquisition.tst_wh.get_samples():
-            tst_imgs.append(sample.image)
-        trn_embs = self.model_engineering.encode(trn_imgs)
-        tst_embs = self.model_engineering.encode(tst_imgs)
-        for index, sample in enumerate(self.data_acquisition.trn_wh.get_samples()):
-            sample.embedding = trn_embs[index]
-        for index, sample in enumerate(self.data_acquisition.tst_wh.get_samples()):
-            sample.embedding = tst_embs[index]
-
-    def acquire_data_one_by_one(self):
-        """
-        Read data sets, process them, and create warehouses for storing them
-        :return: None
-        """
-        trn_dir = os.path.join(self.pkg_dir, 'dataset', 'train')
-        tst_dir = os.path.join(self.pkg_dir, 'dataset', 'test')
-        self.data_acquisition.trn_wh = self.create_wh(trn_dir)
-        self.data_acquisition.tst_wh = self.create_wh(tst_dir)
-        for sample in self.data_acquisition.trn_wh.get_samples():
-            sample.embedding = self.model_engineering.encode([sample.image])
-        for sample in self.data_acquisition.tst_wh.get_samples():
-            sample.embedding = self.model_engineering.encode([sample.image])
+        for face in self.data_acquisition.trn_wh.get_faces():
+            face.embedding = self.model_engineering.encode([face.image])
+        for face in self.data_acquisition.tst_wh.get_faces():
+            face.embedding = self.model_engineering.encode([face.image])
 
     def visualize(self, image, bbox, uid):
         """
@@ -117,8 +95,8 @@ class Execution:
                 continue
             # print('image.shape', image.shape)
 
-            bbox = self.data_processing.detect_faces(image)
-            if bbox is not None:
+            bboxes = self.data_processing.detect_faces(image)
+            for bbox in bboxes:
                 face = self.data_processing.crop(image, bbox)
                 face = self.data_processing.process(face)
                 embedding = self.model_engineering.encode([face])
@@ -144,14 +122,15 @@ class Execution:
         for file in os.listdir(directory):
             name_parts = file.split('.')
             if name_parts[-1] == 'jpg':
-                sample = Sample()
                 image_path = os.path.join(directory, file)
                 image = cv2.imread(image_path)
-                bbox = self.data_processing.detect_faces(image)
-                image = self.data_processing.crop(image, bbox)
-                image = self.data_processing.process(image)
-                label = int(name_parts[0])
-                sample.image = image
-                sample.uid = label
-                warehouse.add(sample)
+                bboxes = self.data_processing.detect_faces(image)
+                for bbox in bboxes:
+                    face = Face()
+                    face_img = self.data_processing.crop(image, bbox)
+                    face_img = self.data_processing.process(face_img)
+                    label = int(name_parts[0])
+                    face.image = face_img
+                    face.uid = label
+                    warehouse.add(face)
         return warehouse

@@ -22,8 +22,8 @@ class DataPreprocessingTestCase(unittest.TestCase):
         print(type(face_img))
         bounding_box_1 = data_processing.detect_faces(face_img)
         bounding_box_2 = data_processing.detect_faces(car_imag)
-        condition_1 = len(bounding_box_1) == 4
-        condition_2 = bounding_box_2 == None
+        condition_1 = len(bounding_box_1) == 1 and len(bounding_box_1[0]) == 4
+        condition_2 = len(bounding_box_2) == 0
         condition = condition_1 and condition_2
         self.assertEqual(condition, True)
 

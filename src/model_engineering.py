@@ -120,16 +120,16 @@ class ModelEngineering:
         """
         Fit the KNN classifier using the training data set
         :param warehouse:
-        :return:
+        :return: None
         """
         emb_array = np.array([])
         uid_array = np.array([])
-        for sample in warehouse.get_samples():
+        for face in warehouse.get_faces():
             if emb_array.ndim == 1:
-                emb_array = sample.embedding
+                emb_array = face.embedding
             else:
-                emb_array = np.vstack((emb_array, sample.embedding))
-            uid_array = np.append(uid_array, sample.uid)
+                emb_array = np.vstack((emb_array, face.embedding))
+            uid_array = np.append(uid_array, face.uid)
         self.clf.fit(emb_array, uid_array)
 
     def knn_classify(self, query):
@@ -154,33 +154,11 @@ class ModelEngineering:
         """
         emb_array = np.array([])
         uid_array = np.array([])
-        for sample in warehouse.get_samples():
+        for face in warehouse.get_faces():
             if emb_array.ndim == 1:
-                emb_array = sample.embedding
+                emb_array = face.embedding
             else:
-                emb_array = np.vstack((emb_array, sample.embedding))
-            uid_array = np.append(uid_array, sample.uid)
+                emb_array = np.vstack((emb_array, face.embedding))
+            uid_array = np.append(uid_array, face.uid)
         accuracy = self.clf.score(emb_array, uid_array)
         return accuracy
-
-    def __knn_classify(self, warehouse, query_emb):
-        """
-        Classify the query embedding
-        :param warehouse: the training warehouse
-        :param query_emb: the embedding to be classified
-        :return: the UID corsresponding to the query
-        """
-        with tf.Session() as sess:
-            new_sample = tf.reduce_mean(query_emb)
-            distance = {}
-            for samples in warehouse:
-                embs = []
-                for sample in samples:
-                    embs.append(sample.embedding)
-                cnt_class = sess.run(tf.reduce_mean(
-                    tf.reduce_sum(np.asarray(embs), 1)), )
-                dis = sess.run(tf.abs(
-                    tf.add(cnt_class, tf.negative(new_sample))))
-                distance.update({"{}".format(sample.uid): dis})
-
-        return min(distance.items(), key=lambda x: x[1])[0]

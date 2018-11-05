@@ -5,10 +5,10 @@ Acquire data from multiple sources
 import cv2
 
 
-class Sample:
+class Face:
     def __init__(self, image=None, uid=None):
         """
-        Initialize the sample
+        Initialize the Face
         :param image: the image
         :param uid: the UID
         """
@@ -20,48 +20,48 @@ class Sample:
 
 
 class Person:
-    def __init__(self, sample):
+    def __init__(self, face):
         """
         Initialize the Person
-        :param sample: the first sample
+        :param face: the first Face
         """
-        self.uid = sample.uid
+        self.uid = face.uid
         self.name = None
-        self.samples = []
-        self.add(sample)
+        self.faces = []
+        self.add(face)
 
-    def add(self, sample):
+    def add(self, face):
         """
-        Add a sample to the a Person
-        :param sample: the new sample
+        Add a face to the a Person
+        :param face: the new Face
         :return: None
         """
-        self.samples.append(sample)
+        self.faces.append(face)
 
-    def delete(self, sample):
+    def delete(self, face):
         """
-        Delete a sample from a Person
-        :param sample: the sample to be deleted
+        Delete a Face from a Person
+        :param face: the Face to be deleted
         :return: None
         """
-        if sample in self.samples:
-            self.samples.remove(sample)
+        if face in self.faces:
+            self.faces.remove(face)
 
 
 class Warehouse:
     def __init__(self):
         self.persons = {}
 
-    def add(self, sample):
+    def add(self, face):
         """
-        Add a new sample
-        :param sample: the sample
+        Add a new Face
+        :param face: the Face
         :return: None
         """
-        if sample.uid in self.persons.keys():
-            self.persons[sample.uid].add(sample)
+        if face.uid in self.persons.keys():
+            self.persons[face.uid].add(face)
         else:
-            self.persons[sample.uid] = Person(sample)
+            self.persons[face.uid] = Person(face)
 
     def delete(self, uid):
         """
@@ -76,22 +76,22 @@ class Warehouse:
         """
         Retrieve a Person by UID
         :param uid: the query UID
-        :return: samples of the Person
+        :return: Faces of the Person
         """
         for person in self.persons:
             if person.uid == uid:
                 return person
 
-    def get_samples(self):
+    def get_faces(self):
         """
-        Retrieve every existing sample
-        :return: a list of samples
+        Retrieve every existing Face
+        :return: a list of Faces
         """
-        samples = []
+        faces = []
         for person in self.persons.values():
-            for sample in person.samples:
-                samples.append(sample)
-        return samples
+            for face in person.faces:
+                faces.append(face)
+        return faces
 
     def get_persons(self):
         """
@@ -110,7 +110,7 @@ class DataAcquisition:
         self.tst_wh = None
 
 
-class CameStreamer:
+class CamStreamer:
     def __init__(self):
         self.cap = cv2.VideoCapture(0)
 
