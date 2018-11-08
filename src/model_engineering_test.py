@@ -74,7 +74,6 @@ class ModelEngineeringTestCase(unittest.TestCase):
             sample2.uid = 2
             my_warehouse[2].append(sample2)
             query = iris.data[132:133, :]
-            print
             self.model_engineering.knn_classify(warehouse=my_warehouse, query_emb=query)
 
 
