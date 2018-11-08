@@ -4,10 +4,11 @@ kNN implemented from Scratch in Python
 import operator
 
 import numpy as np
+import scipy
 
 
 class KNN:
-    def __init__(self, k=5):
+    def __init__(self, k=2):
         """
         Define the training data set and initialize the K parameter
         :param k: The parameter K
@@ -15,6 +16,7 @@ class KNN:
         self.train_data = None
         self.train_label = None
         self.k = k
+        self.threshold = 0.5
 
     def fit(self, train_data, train_label):
         """
@@ -36,7 +38,7 @@ class KNN:
         :param sample1: the second sample
         :return: the distance
         """
-        distance = np.linalg.norm(sample0 - sample1)
+        distance = scipy.spatial.distance.cosine(sample0, sample1)
         return distance
 
     def get_neighbors(self, query):
@@ -60,13 +62,14 @@ class KNN:
         """
         label = -1
         neighbours = self.get_neighbors(query)
-        if neighbours[0][1] > 0.7:
+        if neighbours[0][1] > self.threshold:
             return label
+        print('neighbours', neighbours)
         class_votes = {}
         for neighbour in neighbours:
             neighbour_label = neighbour[0]
             neighbour_distance = neighbour[1]
-            if neighbour_distance == 0:
+            if neighbour_distance == 0.0:
                 score = 1.0
             else:
                 score = 1.0 / neighbour_distance

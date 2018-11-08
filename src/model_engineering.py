@@ -6,8 +6,9 @@ import re
 
 import numpy as np
 import tensorflow as tf
-from sklearn import neighbors
 from tensorflow.python.platform import gfile
+
+from knn import KNN
 
 
 class ModelEngineering:
@@ -25,7 +26,8 @@ class ModelEngineering:
         self.n_neighbors = 2
         # weight function used in prediction. Possible values: 'uniform', 'distance', [callable]
         self.weights = 'distance'
-        self.clf = neighbors.KNeighborsClassifier(self.n_neighbors, algorithm='ball_tree', weights=self.weights)
+        # self.clf = neighbors.KNeighborsClassifier(self.n_neighbors, algorithm='ball_tree', weights=self.weights)
+        self.knn = KNN()
 
     def initialize(self):
         """
@@ -130,7 +132,7 @@ class ModelEngineering:
             else:
                 emb_array = np.vstack((emb_array, face.embedding))
             uid_array = np.append(uid_array, face.uid)
-        self.clf.fit(emb_array, uid_array)
+        self.knn.fit(emb_array, uid_array)
 
     def knn_classify(self, query):
         """
@@ -138,11 +140,7 @@ class ModelEngineering:
         :param query: the subject embedding
         :return: the UID of the subject
         """
-        proba = self.clf.predict_proba([query])[0]
-        index = np.argmax(proba)
-        uid = -1
-        if proba[index] > 0.5:
-            uid = index
+        uid = self.knn.classify([query])
         # print('proba[index]', proba[index])
         # print('detect_uid', uid)
         return uid
@@ -160,5 +158,5 @@ class ModelEngineering:
             else:
                 emb_array = np.vstack((emb_array, face.embedding))
             uid_array = np.append(uid_array, face.uid)
-        accuracy = self.clf.score(emb_array, uid_array)
+        accuracy = self.knn.evaluate(emb_array, uid_array)
         return accuracy
