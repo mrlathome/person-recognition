@@ -64,7 +64,7 @@ class KNN:
         neighbours = self.get_neighbors(query)
         if neighbours[0][1] > self.threshold:
             return label
-        print('neighbours', neighbours)
+        # print('neighbours', neighbours)
         class_votes = {}
         for neighbour in neighbours:
             neighbour_label = neighbour[0]
@@ -78,7 +78,7 @@ class KNN:
             else:
                 class_votes[neighbour_label] = score
         label = max(class_votes.items(), key=operator.itemgetter(1))[0]
-        return label
+        return int(label)
 
     def evaluate(self, test_data, test_labels):
         """

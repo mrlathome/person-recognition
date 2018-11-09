@@ -96,12 +96,16 @@ class Execution:
             # print('image.shape', image.shape)
 
             bboxes = self.data_processing.detect_faces(image)
+            selected_face = None
+            selected_uid = -1
             for bbox in bboxes:
-                face = self.data_processing.crop(image, bbox)
-                face = self.data_processing.process(face)
+                cropped_face = self.data_processing.crop(image, bbox)
+                face = self.data_processing.process(cropped_face)
                 embedding = self.model_engineering.encode([face])
                 uid = self.model_engineering.knn_classify(embedding[0])
                 image = self.visualize(image, bbox, uid)
+                selected_face = cropped_face
+                selected_uid = uid
 
             cv2.imshow('image', image)
             k = cv2.waitKey(30)
@@ -111,6 +115,77 @@ class Execution:
                 stop = True
             elif k == ord('s'):  # wait for 's' key to save and exit
                 cv2.imwrite('face.jpg', image)
+            elif k == ord('a'):  # wait for 'a' key
+                if selected_face is not None:
+                    image_path = self.find_path(selected_uid)
+                    cv2.imwrite(image_path, selected_face)
+                    self.acquire_data()
+                    self.model_engineering.knn_fit(self.data_acquisition.trn_wh)
+            elif k == ord('d'):  # wait for 'd' key
+                if selected_uid != -1:
+                    images_paths = self.find_all_files(selected_uid)
+                    for path in images_paths:
+                        os.remove(path)
+                    self.acquire_data()
+                    self.model_engineering.knn_fit(self.data_acquisition.trn_wh)
+
+    def find_all_files(self, uid):
+        """
+        Find all of the files paths related to the query UID
+        :param uid: the query UID
+        :return: a list of paths
+        """
+        dataset_dir = os.path.join(self.pkg_dir, 'dataset', 'train')
+        samples_num = 0
+        for file in os.listdir(dataset_dir):
+            name_parts = file.split('.')
+            if name_parts[-1] == 'jpg':
+                image_uid = name_parts[0]
+                if int(image_uid) == uid:
+                    samples_num += 1
+        paths = []
+        for sample in range(samples_num):
+            del_face_uid = str(uid).zfill(4)
+            del_face_number = str(sample).zfill(4)
+            file_name = '{}.{}.jpg'.format(del_face_uid, del_face_number)
+            image_path = os.path.join(dataset_dir, file_name)
+            paths.append(image_path)
+        return paths
+
+    def find_path(self, uid):
+        """
+        Find an image path to save
+        :param uid: the selected UID for the image
+        :return: the image path
+        """
+        dataset_dir = os.path.join(self.pkg_dir, 'dataset', 'train')
+        if uid == -1:
+            persons = self.data_acquisition.trn_wh.get_persons()
+            existing_uids = []
+            for person in persons:
+                existing_uids.append(person.uid)
+            new_uid = 0
+            while new_uid in existing_uids:
+                new_uid += 1
+            new_face_uid = str(new_uid).zfill(4)
+            new_face_number = str(0).zfill(4)
+            print('UID: -1', 'new_face_uid', new_face_uid)
+            print('UID: -1', 'new_face_number', new_face_number)
+        else:
+            samples_num = 0
+            for file in os.listdir(dataset_dir):
+                name_parts = file.split('.')
+                if name_parts[-1] == 'jpg':
+                    image_uid = name_parts[0]
+                    if int(image_uid) == uid:
+                        samples_num += 1
+            new_face_uid = str(uid).zfill(4)
+            new_face_number = str(samples_num).zfill(4)
+            print('UID: not -1', 'new_face_uid', new_face_uid)
+            print('UID: not -1', 'new_face_number', new_face_number)
+        file_name = '{}.{}.jpg'.format(new_face_uid, new_face_number)
+        image_path = os.path.join(dataset_dir, file_name)
+        return image_path
 
     def create_wh(self, directory):
         """
