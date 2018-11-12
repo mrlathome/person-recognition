@@ -10,7 +10,7 @@ import unittest
 import cv2
 import numpy as np
 
-from data_acquisition import Sample
+from data_acquisition import Face
 from model_engineering import ModelEngineering
 
 
@@ -57,19 +57,19 @@ class ModelEngineeringTestCase(unittest.TestCase):
         emb_Sample2 = [iris.data[100:130, :]]  # 100-149 Iris-virginica
 
         for i in range(len(emb_Sample0[0])):
-            sample0 = Sample()
+            sample0 = Face()
             sample0.embedding = emb_Sample0[0][i]
             sample0.uid = 0
             my_warehouse[0].append(sample0)
 
         for i in range(len(emb_Sample1[0])):
-            sample1 = Sample()
+            sample1 = Face()
             sample1.embedding = emb_Sample0[0][i]
             sample1.uid = 1
             my_warehouse[1].append(sample1)
 
         for i in range(len(emb_Sample1[0])):
-            sample2 = Sample()
+            sample2 = Face()
             sample2.embedding = emb_Sample0[0][i]
             sample2.uid = 2
             my_warehouse[2].append(sample2)

@@ -16,7 +16,7 @@ class KNN:
         self.train_data = None
         self.train_label = None
         self.k = k
-        self.threshold = 0.5
+        self.threshold = 0.3
 
     def fit(self, train_data, train_label):
         """

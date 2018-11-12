@@ -17,6 +17,8 @@ class Face:
         # The 512-vector corresponding to the encoded image
         self.embedding = None
         self.name = None
+        self.bbox = None
+        self.container_image = None
 
 
 class Person:
@@ -26,7 +28,7 @@ class Person:
         :param face: the first Face
         """
         self.uid = face.uid
-        self.name = None
+        self.name = face.name
         self.faces = []
         self.add(face)
 
@@ -72,6 +74,17 @@ class Warehouse:
         if uid in self.persons.keys():
             self.persons.pop(uid)
 
+    def delete_by_name(self, name):
+        """
+        Delete an existing Person
+        :param uid: the name
+        :return: None
+        """
+        for person in self.persons.values():
+            if person.name == name:
+                self.delete(person.uid)
+                return
+
     def get(self, uid):
         """
         Retrieve a Person by UID
@@ -102,6 +115,16 @@ class Warehouse:
         for person in self.persons.values():
             persons.append(person)
         return persons
+
+    def get_name(self, uid):
+        """
+        Return the name of the Person related to the UID
+        :param uid: the UID
+        :return: the name
+        """
+        for person in self.persons.values():
+            if person.uid == uid:
+                return person.name
 
 
 class DataAcquisition:

@@ -49,7 +49,7 @@ class DataProcessing:
         :param image: The input image
         :return: A list of bounding boxes
         """
-        minsize = 20
+        minsize = 50
         threshold = [self.pnet_threshold, self.rnet_threshold, self.onet_threshold]
         factor = 0.709
         bounding_boxes, _ = align.detect_face.detect_face(image, minsize, self.pnet, self.rnet, self.onet, threshold,
