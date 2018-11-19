@@ -6,10 +6,9 @@ import os
 from copy import deepcopy
 
 import cv2
-
-from data_acquisition import CamStreamer
 from data_acquisition import DataAcquisition
 from data_acquisition import Face
+from data_acquisition import ImageSubscriber
 from data_acquisition import Warehouse
 from data_processing import DataProcessing
 from model_engineering import ModelEngineering
@@ -21,7 +20,8 @@ class Execution:
         self.data_acquisition = DataAcquisition()
         self.data_processing = DataProcessing()
         self.model_engineering = ModelEngineering(self.pkg_dir)
-        self.cam_streamer = CamStreamer()
+        # self.cam_streamer = CamStreamer()
+        self.image_subscriber = ImageSubscriber()
         self.acquire_data()
         self.model_engineering.knn_fit(self.data_acquisition.trn_wh)
         self.selected_face = None
@@ -99,9 +99,8 @@ class Execution:
                     frame = self.visualize(self.selected_face)
 
                 cv2.imshow('image', frame)
-                k = cv2.waitKey(5)
+                k = cv2.waitKey(200)
                 if k == 27:  # wait for ESC key to exit
-                    self.cam_streamer.release()
                     cv2.destroyAllWindows()
                     stop = True
                 elif k == ord('s'):  # wait for 's' key to save and exit
@@ -160,7 +159,7 @@ class Execution:
         Retrieve a new frame from the camera stream and detect faces
         :return: None
         """
-        frame = self.cam_streamer.get_frame()
+        frame = self.image_subscriber.get_frame()
         if frame is None or not frame.shape[0] > 0 or not frame.shape[1] > 0:
             return None
         bboxes = self.data_processing.detect_faces(frame)

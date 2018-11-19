@@ -106,7 +106,7 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES ros-person-recognition
+#  LIBRARIES person_recognition
  CATKIN_DEPENDS rospy std_msgs message_runtime
 #  DEPENDS system_lib
 )

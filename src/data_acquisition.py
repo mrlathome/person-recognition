@@ -1,8 +1,10 @@
 """
 Acquire data from multiple sources
 """
-
 import cv2
+from sensor_msgs.msg import CompressedImage
+import numpy as np
+import rospy
 
 
 class Face:
@@ -154,3 +156,21 @@ class CamStreamer:
         :return: None
         """
         self.cap.release()
+
+
+class ImageSubscriber:
+    def __init__(self):
+        self.frame = None
+        self.topic = '/camera/rgb/image_rect_color/compressed'
+        self.subscriber = rospy.Subscriber(self.topic, CompressedImage, self.callback, queue_size=1)
+
+    def callback(self, ros_data):
+        np_arr = np.fromstring(ros_data.data, np.uint8)
+        self.frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+    def get_frame(self):
+        """
+        Capture the latest frame
+        :return: the current frame
+        """
+        return self.frame
