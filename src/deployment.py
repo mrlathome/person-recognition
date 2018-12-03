@@ -35,7 +35,7 @@ class Deployment:
         # print('Evaluation result:', eval_result)
         rospy.Service('person_recognition/add', AddPerson, self.handle_add_person)
         rospy.Service('person_recognition/delete', DeletePerson, self.handle_delete_person)
-        rospy.Service('person_recognition/detect', DetectCrowd, self.handle_detect_crowd())
+        rospy.Service('person_recognition/detect', DetectCrowd, self.handle_detect_crowd)
         self.execution.test()
 
     def handle_add_person(self, req):
