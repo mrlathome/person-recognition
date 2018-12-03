@@ -155,7 +155,9 @@ class Execution:
             return False
 
     def gendder_classifer(self):
-        frame= self.image_subscriber.get_frame()
+        for i in range(0,10):
+            frame= self.image_subscriber.get_frame()
+
         print (frame.shape)
         bbox = self.data_processing.detect_faces(frame)
         info, _ =self.model_engineering.gender.f_detector(frame,bbox)
