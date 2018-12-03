@@ -154,6 +154,13 @@ class Execution:
         else:
             return False
 
+    def gendder_classifer(self):
+        frame=self.acquire_frame()
+        bbox = self.data_processing.detect_faces(frame)
+        info, _ =self.model_engineering.gender.f_detector(frame,bbox)
+        return info
+
+
     def acquire_frame(self):
         """
         Retrieve a new frame from the camera stream and detect faces

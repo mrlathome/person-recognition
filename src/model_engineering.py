@@ -7,7 +7,7 @@ import re
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.platform import gfile
-
+from gender_detection import Gender
 from knn import KNN
 
 
@@ -28,6 +28,8 @@ class ModelEngineering:
         self.weights = 'distance'
         # self.clf = neighbors.KNeighborsClassifier(self.n_neighbors, algorithm='ball_tree', weights=self.weights)
         self.knn = KNN()
+        self.gender_model= os.path.join(self.pkg_dir,'pre_trained_gn','gender_detection1.model')
+        self.gender = Gender(model=self.gender_model)
 
     def initialize(self):
         """
