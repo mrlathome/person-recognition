@@ -56,9 +56,9 @@ class Deployment:
 
     def handle_detect_crowd(self, req):
         #dict= self.execution.gendder_classifer()
-        rospy.loginfo('gender : {}'.format(dict))
-        persons = dict_to_json_str(dict)
-        objects_message = String(data=persons)
+        #rospy.loginfo('gender : {}'.format(dict))
+        #persons = dict_to_json_str(dict)
+        #objects_message = String(data=persons)
         return DetectCrowdResponse(crowd=String('MAMAD'))
 
     def idle(self):
