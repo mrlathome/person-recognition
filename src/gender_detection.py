@@ -11,23 +11,28 @@ class Gender:
 		self.classes = ['man', 'woman']
 
 	def f_detector(self, frame, bbox):
+		if frame is None:
+			print("Could not read input image")
 		gender = list()
 		info = {}
-		for idx, f in enumerate(bbox):
-			(startx, starty) = f[0], f[1]
-			(endx, endy) = f[2], f[3],
-			conf = self.model.predict(
-				self.crop(frame, startx, starty, endx, endy))[0]
-			idx = np.argmax(conf)
-			label = self.classes[idx]
-			gender.append(label)
-			info = {"person": np.shape(bbox)[0], "man": gender.count("man"), "woman": gender.count("woman")}
-		return info, gender
+		if np.shape(bbox)[0] is 0 :
+			info = {"person": 0, "man": 0, "woman": 0}
+			return info
+		else:
+			for idx, f in enumerate(bbox):
+				(startx, starty) = f[0], f[1]
+				(endx, endy) = f[2], f[3],
+				conf = self.model.predict(
+					self.crop(frame, startx, starty, endx, endy))[0]
+				idx = np.argmax(conf)
+				label = self.classes[idx]
+				gender.append(label)
+				info = {"person": np.shape(bbox)[0], "man": gender.count("man"), "woman": gender.count("woman")}
+			return info, gender
 
 	def m_detector(self, img):
 		if img is None:
 			print("Could not read input image")
-			exit()
 		face_crop = cv2.resize(img, (96, 96))
 		face_crop = face_crop.astype("float") / 255.0
 		face_crop = img_to_array(face_crop)
