@@ -34,7 +34,7 @@ class Execution:
         self.pub_img = rospy.Publisher('/person_recognition/image', CompressedImage, queue_size=1)
         self.pub_txt = rospy.Publisher('/person_recognition/crowd', String, queue_size=10)
 
-    def talk(crowd_size):
+    def talk(self, crowd_size):
         rospy.loginfo('Crowd size: {}'.format(crowd_size))
         self.pub_txt.publish(crowd_size)
 
