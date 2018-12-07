@@ -5,7 +5,6 @@ Creates the necessary objects and executes functions of the system.
 import os
 from copy import deepcopy
 
-import cv2
 from data_acquisition import DataAcquisition
 from data_acquisition import Face
 from data_acquisition import ImageSubscriber
@@ -13,6 +12,13 @@ from data_acquisition import Warehouse
 from data_processing import DataProcessing
 from model_engineering import ModelEngineering
 
+import roslib
+import rospy
+import cv2
+import numpy as np
+from sensor_msgs.msg import CompressedImage
+
+roslib.load_manifest('person_recognition')
 
 class Execution:
     def __init__(self, pkg_dir):
@@ -25,6 +31,22 @@ class Execution:
         self.acquire_data()
         self.model_engineering.knn_fit(self.data_acquisition.trn_wh)
         self.selected_face = None
+        self.pub_img = rospy.Publisher('/person_recognition/image', CompressedImage, queue_size=1)
+        self.pub_txt = rospy.Publisher('/person_recognition/crowd', String, queue_size=10)
+
+    def talk(crowd_size):
+        rospy.loginfo('Crowd size: {}'.format(crowd_size))
+        self.pub_txt.publish(crowd_size)
+
+    def publish_img(self, image):
+        msg = CompressedImage()
+        msg.header.stamp = rospy.Time.now()
+        msg.format = "jpeg"
+        msg.data = np.array(cv2.imencode('.jpg', image)[1]).tostring()
+        try:
+            self.pub_img.publish(msg)
+        except rospy.ROSInterruptException as e:
+            rospy.loginfo('Could not publish an image.', e)
 
     def acquire_data(self):
         """
@@ -97,7 +119,9 @@ class Execution:
             if frame is not None:
                 if self.selected_face is not None:
                     frame = self.visualize(self.selected_face)
-
+                    self.publish_img(frame)
+                
+                """
                 cv2.imshow('image', frame)
                 k = cv2.waitKey(200)
                 if k == 27:  # wait for ESC key to exit
@@ -109,6 +133,7 @@ class Execution:
                     self.add_person()
                 elif k == ord('d'):  # wait for 'd' key
                     self.delete_person()
+                """
 
     def delete_person(self, name=None):
         """
@@ -171,6 +196,8 @@ class Execution:
         if frame is None or not frame.shape[0] > 0 or not frame.shape[1] > 0:
             return None
         bboxes = self.data_processing.detect_faces(frame)
+        crowd_size = len(bboxes)
+        self.talk(crowd_size)
         self.selected_face = None
         for bbox in bboxes:
             cropped_face = self.data_processing.crop(frame, bbox)
