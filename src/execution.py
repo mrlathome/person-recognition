@@ -17,6 +17,7 @@ import rospy
 import cv2
 import numpy as np
 from sensor_msgs.msg import CompressedImage
+from std_msgs.msg import String
 
 roslib.load_manifest('person_recognition')
 
@@ -36,7 +37,7 @@ class Execution:
 
     def talk(self, crowd_size):
         rospy.loginfo('Crowd size: {}'.format(crowd_size))
-        self.pub_txt.publish(crowd_size)
+        self.pub_txt.publish(str(crowd_size))
 
     def publish_img(self, image):
         msg = CompressedImage()
