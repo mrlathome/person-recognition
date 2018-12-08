@@ -16,7 +16,7 @@ import roslib
 import rospy
 import cv2
 import numpy as np
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
 
 roslib.load_manifest('person_recognition')
@@ -32,7 +32,7 @@ class Execution:
         self.acquire_data()
         self.model_engineering.knn_fit(self.data_acquisition.trn_wh)
         self.selected_face = None
-        self.pub_img = rospy.Publisher('/person_recognition/image', Image, queue_size=1)
+        self.pub_img = rospy.Publisher('/person_recognition/image/compressed', CompressedImage, queue_size=1)
         self.pub_txt = rospy.Publisher('/person_recognition/crowd', String, queue_size=10)
 
     def talk(self, crowd_size):
@@ -40,14 +40,14 @@ class Execution:
         self.pub_txt.publish(str(crowd_size))
 
     def publish_img(self, image):
-        msg = Image()
+        msg = CompressedImage()
         msg.header.stamp = rospy.Time.now()
-        msg.format = "jpg"
+        msg.format = "jpeg"
         msg.data = np.array(cv2.imencode('.jpg', image)[1]).tostring()
         try:
             self.pub_img.publish(msg)
         except rospy.ROSInterruptException as e:
-            rospy.loginfo('Could not publish an image.', e)
+            rospy.loginfo('Could not publish image.', e)
 
     def acquire_data(self):
         """
