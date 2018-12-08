@@ -129,7 +129,7 @@ class Execution:
             if frame is not None:
                 if self.selected_face is not None:
                     frame = self.visualize(self.selected_face)
-                    self.publish_img(frame)
+                    self.publish_img_alternate(frame)
                 
                 """
                 cv2.imshow('image', frame)
