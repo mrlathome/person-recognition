@@ -16,8 +16,9 @@ import roslib
 import rospy
 import cv2
 import numpy as np
-from sensor_msgs.msg import CompressedImage
+from sensor_msgs.msg import CompressedImage, Image
 from std_msgs.msg import String
+from cv_bridge import CvBridge, CvBridgeError
 
 roslib.load_manifest('person_recognition')
 
@@ -34,6 +35,7 @@ class Execution:
         self.selected_face = None
         self.pub_img = rospy.Publisher('/person_recognition/image/compressed', CompressedImage, queue_size=1)
         self.pub_txt = rospy.Publisher('/person_recognition/crowd', String, queue_size=10)
+        self.pub_img_alternate = rospy.Publisher('/person_recognition/image', Image, queue_size=10)
 
     def talk(self, crowd_size):
         rospy.loginfo('Crowd size: {}'.format(crowd_size))
@@ -46,6 +48,13 @@ class Execution:
         msg.data = np.array(cv2.imencode('.jpg', image)[1]).tostring()
         try:
             self.pub_img.publish(msg)
+        except rospy.ROSInterruptException as e:
+            rospy.loginfo('Could not publish image.', e)
+
+    def publish_img_alternate(self, image):
+        msg_frame = CvBridge().cv2_to_imgmsg(image)
+        try:
+            self.pub_img_alternate.publish(msg_frame, "RGB8")
         except rospy.ROSInterruptException as e:
             rospy.loginfo('Could not publish image.', e)
 
