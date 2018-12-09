@@ -8,6 +8,7 @@ from copy import deepcopy
 from data_acquisition import DataAcquisition
 from data_acquisition import Face
 from data_acquisition import ImageSubscriber
+from data_acquisition import CamStreamer
 from data_acquisition import Warehouse
 from data_processing import DataProcessing
 from model_engineering import ModelEngineering
@@ -28,14 +29,14 @@ class Execution:
         self.data_acquisition = DataAcquisition()
         self.data_processing = DataProcessing()
         self.model_engineering = ModelEngineering(self.pkg_dir)
-        # self.cam_streamer = CamStreamer()
-        self.image_subscriber = ImageSubscriber()
+        self.cam_streamer = CamStreamer()
+        #self.image_subscriber = ImageSubscriber()
         self.acquire_data()
         self.model_engineering.knn_fit(self.data_acquisition.trn_wh)
         self.selected_face = None
         self.pub_img = rospy.Publisher('/person_recognition/image/compressed', CompressedImage, queue_size=1)
         self.pub_txt = rospy.Publisher('/person_recognition/crowd', String, queue_size=10)
-        self.pub_img_alternate = rospy.Publisher('/person_recognition/image', Image, queue_size=10)
+        #self.pub_img_alternate = rospy.Publisher('/person_recognition/image', Image, queue_size=10)
 
     def talk(self, crowd_size):
         rospy.loginfo('Crowd size: {}'.format(crowd_size))
@@ -54,7 +55,7 @@ class Execution:
     def publish_img_alternate(self, image):
         msg_frame = CvBridge().cv2_to_imgmsg(image)
         try:
-            self.pub_img_alternate.publish(msg_frame, "RGB8")
+            self.pub_img.publish(msg_frame, "RGB8")
         except rospy.ROSInterruptException as e:
             rospy.loginfo('Could not publish image.', e)
 
@@ -129,11 +130,11 @@ class Execution:
             if frame is not None:
                 if self.selected_face is not None:
                     frame = self.visualize(self.selected_face)
-                    self.publish_img_alternate(frame)
+                    #self.publish_img_alternate(frame)
                 
-                """
+                
                 cv2.imshow('image', frame)
-                k = cv2.waitKey(200)
+                k = cv2.waitKey(30)
                 if k == 27:  # wait for ESC key to exit
                     cv2.destroyAllWindows()
                     stop = True
@@ -143,7 +144,7 @@ class Execution:
                     self.add_person()
                 elif k == ord('d'):  # wait for 'd' key
                     self.delete_person()
-                """
+                
 
     def delete_person(self, name=None):
         """
@@ -193,7 +194,7 @@ class Execution:
         frame= self.image_subscriber.get_frame()
         print (frame.shape)
         bboxs = self.data_processing.detect_faces_bbox(frame)
-        info, _ =self.model_engineering.gender.f_detector(frame,bboxs)
+        info, _ = self.model_engineering.gender.f_detector(frame,bboxs)
         return info
 
 
@@ -202,7 +203,8 @@ class Execution:
         Retrieve a new frame from the camera stream and detect faces
         :return: None
         """
-        frame = self.image_subscriber.get_frame()
+        #frame = self.image_subscriber.get_frame()
+        frame = self.cam_streamer.get_frame()
         if frame is None or not frame.shape[0] > 0 or not frame.shape[1] > 0:
             return None
         bboxes = self.data_processing.detect_faces(frame)

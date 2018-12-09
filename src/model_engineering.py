@@ -28,8 +28,8 @@ class ModelEngineering:
         self.weights = 'distance'
         # self.clf = neighbors.KNeighborsClassifier(self.n_neighbors, algorithm='ball_tree', weights=self.weights)
         self.knn = KNN()
-        self.gender_model= os.path.join(self.pkg_dir,'pre_trained_gn','gender_detection1.model')
-        self.gender = Gender(model=self.gender_model)
+        #self.gender_model= os.path.join(self.pkg_dir,'pre_trained_gn','gender_detection1.model')
+        #self.gender = Gender(model=self.gender_model)
 
     def initialize(self):
         """
