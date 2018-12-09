@@ -137,7 +137,7 @@ class DataAcquisition:
 
 class CamStreamer:
     def __init__(self):
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(1)
 
     def get_frame(self):
         """

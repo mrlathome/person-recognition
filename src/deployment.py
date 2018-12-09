@@ -36,6 +36,8 @@ class Deployment:
         rospy.Service('person_recognition/add', AddPerson, self.handle_add_person)
         rospy.Service('person_recognition/delete', DeletePerson, self.handle_delete_person)
         rospy.Service('person_recognition/detect', DetectCrowd, self.handle_detect_crowd)
+        accuracy = self.execution.evaluate()
+        rospy.loginfo('Evaluation result: {}'.format(accuracy))
         self.execution.test()
 
     def handle_add_person(self, req):
@@ -68,7 +70,7 @@ class Deployment:
         except KeyboardInterrupt:
             print("Shutting down person recognition module")
             
-    def dict_to_json_str(data):
+    def dict_to_json_str(self, data):
         json_data = dict()
         for key, value in data.iteritems():
             if isinstance(value, list):  # for lists
