@@ -33,6 +33,8 @@ import tensorflow as tf
 #from math import floor
 import cv2
 import os
+import numba
+import ctypes
 
 def layer(op):
     """Decorator for composable network layers."""
@@ -289,12 +291,18 @@ def create_mtcnn(sess, model_path):
         data = tf.placeholder(tf.float32, (None,48,48,3), 'input')
         onet = ONet({'data':data})
         onet.load(os.path.join(model_path, 'det3.npy'), sess)
-        
-    pnet_fun = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
-    rnet_fun = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
-    onet_fun = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
+    sess.close()
+    with tf.device('/cpu:2'):
+        with tf.Graph().as_default():
+            tfconfig = tf.ConfigProto(device_count = {"CPU": 4}, allow_soft_placement = True)
+            tfconfig.intra_op_parallelism_threads = 8
+            tfconfig.inter_op_parallelism_threads = 8
+            with tf.Session(config = tfconfig) as sess:    
+                pnet_fun = lambda img : sess.run(('pnet/conv4-2/BiasAdd:0', 'pnet/prob1:0'), feed_dict={'pnet/input:0':img})
+                rnet_fun = lambda img : sess.run(('rnet/conv5-2/conv5-2:0', 'rnet/prob1:0'), feed_dict={'rnet/input:0':img})
+                onet_fun = lambda img : sess.run(('onet/conv6-2/conv6-2:0', 'onet/conv6-3/conv6-3:0', 'onet/prob1:0'), feed_dict={'onet/input:0':img})
     return pnet_fun, rnet_fun, onet_fun
-
+@numba.jit(nopython=True, parallel=True,fastmath = True)
 def detect_face(img, minsize, pnet, rnet, onet, threshold, factor):
     """Detects faces in an image, and returns bounding boxes and points for them.
     img: input image
@@ -643,6 +651,7 @@ def bulk_detect_face(images, detection_window_size_ratio, pnet, rnet, onet, thre
 
 
 # function [boundingbox] = bbreg(boundingbox,reg)
+@numba.jit(nopaython=True)
 def bbreg(boundingbox,reg):
     """Calibrate bounding boxes"""
     if reg.shape[1]==1:
@@ -656,7 +665,7 @@ def bbreg(boundingbox,reg):
     b4 = boundingbox[:,3]+reg[:,3]*h
     boundingbox[:,0:4] = np.transpose(np.vstack([b1, b2, b3, b4 ]))
     return boundingbox
- 
+@numba.jit(nopython=True, parallel=True,fastmath = True)
 def generateBoundingBox(imap, reg, scale, t):
     """Use heatmap to generate bounding boxes"""
     stride=2
@@ -682,8 +691,9 @@ def generateBoundingBox(imap, reg, scale, t):
     q2 = np.fix((stride*bb+cellsize-1+1)/scale)
     boundingbox = np.hstack([q1, q2, np.expand_dims(score,1), reg])
     return boundingbox, reg
- 
+
 # function pick = nms(boxes,threshold,type)
+@numba.jit(nopaython=True)
 def nms(boxes, threshold, method):
     if boxes.size==0:
         return np.empty((0,3))
@@ -717,6 +727,7 @@ def nms(boxes, threshold, method):
     return pick
 
 # function [dy edy dx edx y ey x ex tmpw tmph] = pad(total_boxes,w,h)
+@numba.jit(nopaython=True)
 def pad(total_boxes, w, h):
     """Compute the padding coordinates (pad the bounding boxes to square)"""
     tmpw = (total_boxes[:,2]-total_boxes[:,0]+1).astype(np.int32)
@@ -752,6 +763,7 @@ def pad(total_boxes, w, h):
     return dy, edy, dx, edx, y, ey, x, ex, tmpw, tmph
 
 # function [bboxA] = rerec(bboxA)
+@numba.jit(nopaython=True)
 def rerec(bboxA):
     """Convert bboxA to square."""
     h = bboxA[:,3]-bboxA[:,1]
@@ -761,7 +773,8 @@ def rerec(bboxA):
     bboxA[:,1] = bboxA[:,1]+h*0.5-l*0.5
     bboxA[:,2:4] = bboxA[:,0:2] + np.transpose(np.tile(l,(2,1)))
     return bboxA
-
+    
+@numba.jit(nopaython=True)
 def imresample(img, sz):
     im_data = cv2.resize(img, (sz[1], sz[0]), interpolation=cv2.INTER_AREA) #@UndefinedVariable
     return im_data

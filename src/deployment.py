@@ -4,13 +4,11 @@
 Handles ros operations necessary for using the package.
 """
 import os
-
 import roslib
 import rospkg
 import rospy
 from person_recognition.srv import *
 from std_msgs.msg import String
-
 from execution import Execution
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -69,7 +67,7 @@ class Deployment:
             rospy.spin()
         except KeyboardInterrupt:
             print("Shutting down person recognition module")
-            
+
     def dict_to_json_str(self, data):
         json_data = dict()
         for key, value in data.iteritems():

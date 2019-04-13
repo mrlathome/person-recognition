@@ -7,7 +7,6 @@ import re
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.platform import gfile
-from gender_detection import Gender
 from knn import KNN
 
 
@@ -115,7 +114,6 @@ class ModelEngineering:
         """
         if not self.initialized:
             self.initialized = self.initialize()
-
         feed_dict = {self.imgs_ph: images, self.phase_train_ph: False}
         emb_array = self.session.run(self.embs_ph, feed_dict=feed_dict)
         return emb_array

@@ -1,5 +1,5 @@
-"""
-process data and produce valid output for other moduls
+ """
+ process data and produce valid output for other moduls
 """
 import copy
 
@@ -71,7 +71,7 @@ class DataProcessing:
         minsize = 30
         threshold = [self.pnet_threshold, self.rnet_threshold, self.onet_threshold]
         factor = 0.709
-        bounding_boxes, _ = align.detect_face.detect_face(image, minsize, self.pnet, self.rnet, self.onet, threshold,
+        boundin g_boxes, _ = align.detect_face.detect_face(image, minsize, self.pnet, self.rnet, self.onet, threshold,
                                                           factor)
         return bounding_boxes
 
