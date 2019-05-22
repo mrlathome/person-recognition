@@ -1,4 +1,4 @@
---Person Recognition-- 
+# Person Recognition
 This project is aimed to recognize a person. it uses CNN(convulotional neural network) for this purpose. The input data comes from camera.
 
 Prerequisites:
@@ -36,8 +36,6 @@ now you can see the input and output image.
 you can add a name to the recognized face -->
 $ rosservice call person_recognition "name:['%THE_NAME%']"
 
-# ros-person-recognition
-ROS person recognition
+## System Use Cases
 
-System Diagram:
-![picture](documentation/system_diagram.jpg)
+![picture](documentation/person-recognition.jpg)
